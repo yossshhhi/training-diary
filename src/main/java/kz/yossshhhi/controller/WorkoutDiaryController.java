@@ -123,10 +123,6 @@ public class WorkoutDiaryController {
         workoutDiaryService.delete(workoutId);
     }
 
-    public void edit(Workout workout) {
-        workoutDiaryService.edit(workout);
-    }
-
     /**
      * Finds a workout entry by its ID.
      *

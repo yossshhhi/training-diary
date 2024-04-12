@@ -28,11 +28,6 @@ public class WorkoutDAO implements WorkoutRepository {
     }
 
     @Override
-    public void edit(Workout workout) {
-        workouts.put(workout.getId(), workout);
-    }
-
-    @Override
     public void delete(Long id) {
         workouts.remove(id);
     }

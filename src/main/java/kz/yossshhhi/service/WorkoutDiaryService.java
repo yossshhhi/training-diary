@@ -115,15 +115,6 @@ public class WorkoutDiaryService {
     }
 
     /**
-     * Edits the details of a workout.
-     *
-     * @param workout The workout to edit.
-     */
-    public void edit(Workout workout) {
-        workoutRepository.edit(workout);
-    }
-
-    /**
      * Deletes a workout by its ID.
      *
      * @param id The ID of the workout to delete.
