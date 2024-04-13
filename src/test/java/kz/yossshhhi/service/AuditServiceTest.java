@@ -5,6 +5,7 @@ import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -16,6 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Audit Service Tests")
 class AuditServiceTest {
 
     @Mock
@@ -30,6 +32,7 @@ class AuditServiceTest {
     }
 
     @Test
+    @DisplayName("Save method should save audit entry")
     void save_ShouldSaveAuditEntry() {
         Audit audit = Audit.builder().build();
 
@@ -39,6 +42,7 @@ class AuditServiceTest {
     }
 
     @Test
+    @DisplayName("ShowAll method should return string representation of all audits")
     void showAll_ShouldReturnStringRepresentationOfAllAudits() {
         List<Audit> auditList = new ArrayList<>();
         auditList.add(Audit.builder().userId(1L).createdAt(LocalDateTime.now()).auditAction(AuditAction.REGISTRATION).auditType(AuditType.SUCCESS).build());

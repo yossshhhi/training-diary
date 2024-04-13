@@ -9,6 +9,7 @@ import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.model.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Security Service Tests")
 public class SecurityServiceTest {
 
     @Mock
@@ -36,6 +38,7 @@ public class SecurityServiceTest {
     }
 
     @Test
+    @DisplayName("Successful Registration")
     public void testRegistration_Successful() {
         AuthenticationRequest request = AuthenticationRequest.builder()
                 .username("username")
@@ -54,6 +57,7 @@ public class SecurityServiceTest {
     }
 
     @Test
+    @DisplayName("Registration: User Already Exists")
     public void testRegistration_UserAlreadyExists() {
         AuthenticationRequest request = AuthenticationRequest.builder()
                 .username("existingUser")
@@ -73,6 +77,7 @@ public class SecurityServiceTest {
     }
 
     @Test
+    @DisplayName("Successful Authentication")
     public void testAuthentication_Successful() {
         AuthenticationRequest request = AuthenticationRequest.builder()
                 .username("username")
@@ -95,6 +100,7 @@ public class SecurityServiceTest {
     }
 
     @Test
+    @DisplayName("Authentication: User Not Found")
     public void testAuthentication_UserNotFound() {
         AuthenticationRequest request = AuthenticationRequest.builder()
                 .username("nonExistingUser")
@@ -109,6 +115,7 @@ public class SecurityServiceTest {
     }
 
     @Test
+    @DisplayName("Authentication: Invalid Password")
     public void testAuthentication_InvalidPassword() {
         AuthenticationRequest request = AuthenticationRequest.builder()
                 .username("username")

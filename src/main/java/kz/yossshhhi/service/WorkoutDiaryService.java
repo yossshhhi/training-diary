@@ -169,28 +169,7 @@ public class WorkoutDiaryService {
     public String workoutListToString(List<Workout> workoutList) {
         StringBuilder stringBuilder = new StringBuilder();
         for (Workout workout : workoutList) {
-            stringBuilder.append(workout.getId()).append(". ")
-                    .append(workout.getCreatedAt()).append(" ")
-                    .append(workoutTypeRepository.findById(workout.getWorkoutTypeId())
-                            .orElseThrow(() -> new IllegalArgumentException("Workout type not found"))
-                            .getName()).append(" (")
-                    .append("duration: ").append(workout.getDuration()).append(", ")
-                    .append("burned calories: ").append(workout.getBurnedCalories());
-            if (workout.getExtraOptions().isEmpty()) {
-                stringBuilder.append(")\n");
-            } else {
-                stringBuilder.append(", extra options {");
-                Iterator<Map.Entry<ExtraOption, Integer>> iterator = workout.getExtraOptions().entrySet().iterator();
-                do {
-                    Map.Entry<ExtraOption, Integer> next = iterator.next();
-                    stringBuilder.append(next.getKey().getName()).append(": ")
-                            .append(next.getValue());
-                    if (iterator.hasNext()) {
-                        stringBuilder.append(", ");
-                    }
-                } while (iterator.hasNext());
-                stringBuilder.append("})\n");
-            }
+            stringBuilder.append(workout.toString()).append("\n");
         }
         return stringBuilder.toString();
     }

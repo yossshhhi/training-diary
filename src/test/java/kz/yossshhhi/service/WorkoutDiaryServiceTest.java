@@ -7,6 +7,7 @@ import kz.yossshhhi.dao.repository.WorkoutTypeRepository;
 import kz.yossshhhi.model.Workout;
 import kz.yossshhhi.model.WorkoutDiary;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -17,6 +18,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Workout Diary Service Tests")
 class WorkoutDiaryServiceTest {
 
     @Mock
@@ -37,6 +39,7 @@ class WorkoutDiaryServiceTest {
     }
 
     @Test
+    @DisplayName("Creating Workout When Not Exists in Diary Should Create Workout")
     void create_WorkoutDoesNotExistInDiary_ShouldCreateWorkout() {
         Long userId = 1L;
         Workout workout = new Workout();
@@ -60,6 +63,7 @@ class WorkoutDiaryServiceTest {
     }
 
     @Test
+    @DisplayName("Finding All Workouts By User ID When User Exists With Workouts Should Return Workout List")
     void findAllByUserId_UserExistsWithWorkouts_ShouldReturnWorkoutList() {
         Long userId = 1L;
         WorkoutDiary workoutDiary = new WorkoutDiary();
@@ -73,6 +77,7 @@ class WorkoutDiaryServiceTest {
     }
 
     @Test
+    @DisplayName("Finding All Workouts Should Return List of Workouts")
     void findAll_ReturnsListOfWorkouts() {
         List<Workout> expectedWorkouts = Arrays.asList(
                 Workout.builder().id(1L).build(),
@@ -89,6 +94,7 @@ class WorkoutDiaryServiceTest {
     }
 
     @Test
+    @DisplayName("Finding Workout By ID When Workout Exists Should Return Workout")
     void findById_WorkoutExists_ShouldReturnWorkout() {
         Long workoutId = 1L;
         Workout workout = Workout.builder().build();
@@ -103,6 +109,7 @@ class WorkoutDiaryServiceTest {
     }
 
     @Test
+    @DisplayName("Getting Statistics When No Workouts in Specified Days Should Return Zero")
     void getStatistics_NoWorkoutsInSpecifiedDays_ShouldReturnZero() {
         Integer days = 7;
         Long userId = 1L;

@@ -65,7 +65,7 @@ public class SecurityController {
      * @throws InvalidCredentialsException if the username is invalid
      */
     public void validUsername(String username) {
-        if (username.isBlank() || username.isEmpty()) {
+        if (username.isBlank()) {
             throw new InvalidCredentialsException("Username must not be blank");
         }
         if (username.length() < 3 || username.length() > 50) {
@@ -80,11 +80,11 @@ public class SecurityController {
      * @throws InvalidCredentialsException if the password is invalid
      */
     public void validPassword(String password) {
-        if (password.isBlank() || password.isEmpty()) {
+        if (password.isBlank()) {
             throw new InvalidCredentialsException("Password must not be blank");
         }
         if (password.length() < 5 || password.length() > 50) {
-            throw new InvalidCredentialsException("Password length must be between 3 and 50");
+            throw new InvalidCredentialsException("Password length must be between 5 and 50");
         }
     }
 }

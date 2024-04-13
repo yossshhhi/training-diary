@@ -1,10 +1,8 @@
 package kz.yossshhhi.controller;
 
-import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.ExtraOption;
 import kz.yossshhhi.model.Workout;
 import kz.yossshhhi.model.WorkoutType;
-import kz.yossshhhi.service.AuditService;
 import kz.yossshhhi.service.ExtraOptionService;
 import kz.yossshhhi.service.WorkoutDiaryService;
 import kz.yossshhhi.service.WorkoutTypeService;
@@ -60,7 +58,7 @@ public class AdminController {
      * @throws IllegalArgumentException if the name is empty or blank.
      */
     public void addWorkoutType(String name) {
-        if (name.isBlank() || name.isEmpty()) {
+        if (name.isBlank()) {
             throw new IllegalArgumentException("The workout type name cannot be empty");
         }
         workoutTypeService.create(WorkoutType.builder().name(name).build());
@@ -73,7 +71,7 @@ public class AdminController {
      * @throws IllegalArgumentException if the name is empty or blank.
      */
     public void addExtraOption(String name) {
-        if (name.isBlank() || name.isEmpty()) {
+        if (name.isBlank()) {
             throw new IllegalArgumentException("The extra option name cannot be empty");
         }
         extraOptionService.create(ExtraOption.builder().name(name).build());

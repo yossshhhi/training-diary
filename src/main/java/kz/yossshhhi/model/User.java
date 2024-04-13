@@ -2,7 +2,6 @@ package kz.yossshhhi.model;
 
 import kz.yossshhhi.model.enums.Role;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 /**
  * Represents a user in the system.
@@ -11,26 +10,25 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class User {
     /**
      * The unique identifier of the user.
      */
-    Long id;
+    private Long id;
 
     /**
      * The username of the user.
      */
-    String username;
+    private String username;
 
     /**
      * The password of the user.
      */
-    String password;
+    private String password;
 
     /**
      * The role of the user.
      */
-    Role role;
+    private Role role;
 }

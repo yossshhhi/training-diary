@@ -3,6 +3,7 @@ package kz.yossshhhi.service;
 import kz.yossshhhi.dao.repository.WorkoutTypeRepository;
 import kz.yossshhhi.model.WorkoutType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Workout Type Service Tests")
 class WorkoutTypeServiceTest {
 
     @Mock
@@ -28,6 +30,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Create New Workout Type - Success")
     void create_NewWorkoutType_Success() {
         WorkoutType workoutType = WorkoutType.builder().name("TestType").build();
         when(workoutTypeRepository.findByName("TestType")).thenReturn(Optional.empty());
@@ -42,6 +45,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Create Existing Workout Type - Exception Thrown")
     void create_ExistingWorkoutType_ExceptionThrown() {
         WorkoutType existingType = WorkoutType.builder().id(1L).name("ExistingType").build();
         when(workoutTypeRepository.findByName("ExistingType")).thenReturn(Optional.of(existingType));
@@ -55,6 +59,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Find By ID - Existing ID - Workout Type Returned")
     void findById_ExistingId_WorkoutTypeReturned() {
         WorkoutType existingType = WorkoutType.builder().id(1L).name("ExistingType").build();
         when(workoutTypeRepository.findById(1L)).thenReturn(Optional.of(existingType));
@@ -67,6 +72,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Find By ID - Non-existing ID - Exception Thrown")
     void findById_NonExistingId_ExceptionThrown() {
         when(workoutTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -78,6 +84,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Exists By ID - Existing ID - True Returned")
     void existsById_ExistingId_TrueReturned() {
         when(workoutTypeRepository.findById(1L)).thenReturn(Optional.of(WorkoutType.builder().id(1L).build()));
 
@@ -86,6 +93,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Exists By ID - Non-existing ID - False Returned")
     void existsById_NonExistingId_FalseReturned() {
         when(workoutTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -94,6 +102,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Find All - No Workout Types - Empty List Returned")
     void findAll_NoWorkoutTypes_EmptyListReturned() {
         when(workoutTypeRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -105,6 +114,7 @@ class WorkoutTypeServiceTest {
     }
 
     @Test
+    @DisplayName("Find All - Workout Types Available - All Workout Types Returned")
     void findAll_WorkoutTypesAvailable_AllWorkoutTypesReturned() {
         WorkoutType workoutType1 = WorkoutType.builder().id(1L).name("Type1").build();
         WorkoutType workoutType2 = WorkoutType.builder().id(2L).name("Type2").build();

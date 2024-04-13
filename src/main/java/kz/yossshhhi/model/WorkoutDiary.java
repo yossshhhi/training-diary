@@ -1,7 +1,6 @@
 package kz.yossshhhi.model;
 
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
@@ -12,21 +11,20 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class WorkoutDiary {
     /**
      * The unique identifier of the workout diary.
      */
-    Long id;
+    private Long id;
 
     /**
      * The user ID associated with the workout diary.
      */
-    Long userId;
+    private Long userId;
 
     /**
      * The list of workouts recorded in the diary.
      */
-    List<Workout> workoutList;
+    private List<Workout> workoutList;
 }

@@ -1,9 +1,7 @@
 package kz.yossshhhi.model;
 
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -11,37 +9,37 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
+@ToString
 public class Workout {
     /**
      * The unique identifier of the workout.
      */
-    Long id;
+    private Long id;
 
     /**
      * The ID of the workout type associated with this workout.
      */
-    Long workoutTypeId;
+    private Long workoutTypeId;
 
     /**
      * The date when the workout was created.
      */
-    LocalDate createdAt;
+    private LocalDate createdAt;
 
     /**
      * The duration of the workout in minutes.
      */
-    Integer duration;
+    private Integer duration;
 
     /**
      * The number of calories burned during the workout.
      */
-    Integer burnedCalories;
+    private Integer burnedCalories;
 
     /**
      * A map containing extra options associated with the workout and their corresponding values.
      * For example, extra options could include distance covered, speed, etc.
      */
-    Map<ExtraOption, Integer> extraOptions;
+    private Map<ExtraOption, Integer> extraOptions;
 }
