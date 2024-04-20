@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+                   logicalFilePath="db/changelog.xml">
+
+    <changeSet id="create-sequences" author="yossshhhi">
+        <createSequence schemaName="diary_schema" sequenceName="audit_seq"/>
+        <createSequence schemaName="diary_schema" sequenceName="extra_option_seq"/>
+        <createSequence schemaName="diary_schema" sequenceName="extra_option_type_seq"/>
+        <createSequence schemaName="diary_schema" sequenceName="users_seq"/>
+        <createSequence schemaName="diary_schema" sequenceName="workout_seq"/>
+        <createSequence schemaName="diary_schema" sequenceName="workout_type_seq"/>
+    </changeSet>
+
+    <changeSet id="associate-sequences" author="yossshhhi">
+        <sql>
+            ALTER TABLE diary_schema.audit
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.audit_seq');
+        </sql>
+
+        <sql>
+            ALTER TABLE diary_schema.extra_option
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.extra_option_seq');
+        </sql>
+
+        <sql>
+            ALTER TABLE diary_schema.extra_option_type
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.extra_option_type_seq');
+        </sql>
+
+        <sql>
+            ALTER TABLE diary_schema.users
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.users_seq');
+        </sql>
+
+        <sql>
+            ALTER TABLE diary_schema.workout
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.workout_seq');
+        </sql>
+
+        <sql>
+            ALTER TABLE diary_schema.workout_type
+                ALTER COLUMN id SET DEFAULT nextval('diary_schema.workout_type_seq');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -6,7 +6,6 @@ import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * Service class for auditing user actions.

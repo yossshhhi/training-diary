@@ -3,15 +3,32 @@ package kz.yossshhhi.configuration;
 import kz.yossshhhi.controller.AdminController;
 import kz.yossshhhi.controller.AppController;
 import kz.yossshhhi.controller.SecurityController;
-import kz.yossshhhi.controller.WorkoutDiaryController;
+import kz.yossshhhi.controller.WorkoutController;
 import kz.yossshhhi.dao.*;
 import kz.yossshhhi.dao.repository.*;
 import kz.yossshhhi.handler.CommandHandler;
 import kz.yossshhhi.in.console.ConsoleReader;
+import kz.yossshhhi.model.*;
 import kz.yossshhhi.out.ConsoleWriter;
 import kz.yossshhhi.service.*;
+import kz.yossshhhi.util.ConnectionPool;
+import kz.yossshhhi.util.DataSource;
+import kz.yossshhhi.util.DatabaseManager;
+import kz.yossshhhi.util.ResultSetMapper;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Properties;
 
 /**
  * This class represents the configuration for the application, providing access to various controllers and repositories.
@@ -19,9 +36,22 @@ import java.util.HashMap;
 public class Configuration {
 
     /**
+     * The file name of the properties file used for application configuration.
+     */
+    private static final String PROPERTIES_FILE = "application.properties";
+    /**
      * The context map holds references to various objects used in the application.
      */
     private final HashMap<String, Object> context = new HashMap<>();
+
+    /**
+     * Initializes the Configuration by loading properties and performing database migration.
+     */
+    public Configuration() {
+        Properties properties = properties();
+        DataSource dataSource = dataSource(properties);
+        databaseMigration(dataSource);
+    }
 
     /**
      * Retrieves an instance of {@link AppController} configured with necessary dependencies.
@@ -53,41 +83,34 @@ public class Configuration {
 
         putIfNotContains("consoleReader", consoleReader);
         putIfNotContains("consoleWriter", consoleWriter);
-        return new CommandHandler(consoleReader, consoleWriter, workoutDiaryController(), adminController(), (AuditService) context.get("auditService"));
+        return new CommandHandler(consoleReader, consoleWriter, workoutController(), adminController(),
+                (AuditService) context.get("auditService"), connectionPool());
     }
 
     /**
-     * Retrieves an instance of {@link WorkoutDiaryController} configured with necessary services.
-     * <p>
-     * This method retrieves or creates instances of {@link WorkoutDiaryService}, {@link ExtraOptionService},
-     * and {@link WorkoutTypeService} from the context map and constructs a new {@link WorkoutDiaryController}
-     * with these services.
+     * Retrieves an instance of {@link WorkoutController} configured with necessary services.
      *
-     * @return An instance of {@link WorkoutDiaryController}.
+     * @return An instance of {@link WorkoutController}.
      */
-    public WorkoutDiaryController workoutDiaryController() {
-        return new WorkoutDiaryController(
-                (WorkoutDiaryService) context.get("workoutDiaryService"),
+    public WorkoutController workoutController() {
+        return new WorkoutController(
+                (WorkoutService) context.get("workoutService"),
                 (ExtraOptionService) context.get("extraOptionService"),
-                (WorkoutTypeService) context.get("workoutTypeService"));
+                (WorkoutTypeService) context.get("workoutTypeService"),
+                (ExtraOptionTypeService) context.get("extraOptionTypeService"));
     }
 
     /**
      * Retrieves an instance of {@link AdminController} configured with necessary services.
-     * <p>
-     * This method retrieves or creates instances of {@link WorkoutDiaryService}, {@link WorkoutTypeService},
-     * and {@link ExtraOptionService} from the context map and constructs a new {@link AdminController}
-     * with these services.
      *
      * @return An instance of {@link AdminController}.
      */
     public AdminController adminController() {
         return new AdminController(
-                (WorkoutDiaryService) context.get("workoutDiaryService"),
+                (WorkoutService) context.get("workoutService"),
                 (WorkoutTypeService) context.get("workoutTypeService"),
-                (ExtraOptionService) context.get("extraOptionService"));
+                (ExtraOptionTypeService) context.get("extraOptionTypeService"));
     }
-
 
     /**
      * Retrieves the {@link UserRepository} instance from the context map, or creates a new one if not present.
@@ -95,7 +118,8 @@ public class Configuration {
      * @return The {@link UserRepository} instance.
      */
     public UserRepository userRepository() {
-        UserRepository userRepository = (UserRepository) context.getOrDefault("userRepository", new UserDAO());
+        UserRepository userRepository = (UserRepository) context.getOrDefault("userRepository",
+                new UserDAO(databaseManager(), new ResultSetMapper<>(User.class)));
         putIfNotContains("userRepository", userRepository);
         return userRepository;
     }
@@ -106,7 +130,10 @@ public class Configuration {
      * @return The {@link WorkoutRepository} instance.
      */
     public WorkoutRepository workoutRepository() {
-        WorkoutRepository workoutRepository = (WorkoutRepository) context.getOrDefault("workoutRepository", new WorkoutDAO());
+        WorkoutRepository workoutRepository = (WorkoutRepository) context.getOrDefault("workoutRepository",
+                new WorkoutDAO(databaseManager(),
+                        new ResultSetMapper<>(Workout.class),
+                        new ResultSetMapper<>(AggregateWorkoutData.class)));
         putIfNotContains("workoutRepository", workoutRepository);
         return workoutRepository;
     }
@@ -117,29 +144,35 @@ public class Configuration {
      * @return The {@link WorkoutTypeRepository} instance.
      */
     public WorkoutTypeRepository workoutTypeRepository() {
-        WorkoutTypeRepository workoutTypeRepository = (WorkoutTypeRepository) context.getOrDefault("workoutTypeRepository", new WorkoutTypeDAO());
+        WorkoutTypeRepository workoutTypeRepository = (WorkoutTypeRepository) context.getOrDefault(
+                "workoutTypeRepository",
+                new WorkoutTypeDAO(databaseManager(), new ResultSetMapper<>(WorkoutType.class)));
         putIfNotContains("workoutTypeRepository", workoutTypeRepository);
         return workoutTypeRepository;
     }
 
     /**
-     * Retrieves the {@link WorkoutDiaryRepository} instance from the context map, or creates a new one if not present.
+     * Retrieves the {@link ExtraOptionTypeRepository} instance from the context map, or creates a new one if not present.
      *
-     * @return The {@link WorkoutDiaryRepository} instance.
+     * @return The {@link ExtraOptionTypeRepository} instance.
      */
-    public WorkoutDiaryRepository workoutDiaryRepository() {
-        WorkoutDiaryRepository workoutDiaryRepository = (WorkoutDiaryRepository) context.getOrDefault("workoutDiaryRepository", new WorkoutDiaryDAO());
-        putIfNotContains("workoutDiaryRepository", workoutDiaryRepository);
-        return workoutDiaryRepository;
+    public ExtraOptionTypeRepository extraOptionTypeRepository() {
+        ExtraOptionTypeRepository extraOptionTypeRepository = (ExtraOptionTypeRepository) context.getOrDefault(
+                "extraOptionTypeRepository",
+                new ExtraOptionTypeDAO(databaseManager(), new ResultSetMapper<>(ExtraOptionType.class)));
+        putIfNotContains("extraOptionTypeRepository", extraOptionTypeRepository);
+        return extraOptionTypeRepository;
     }
 
     /**
-     * Retrieves the {@link ExtraOptionRepository} instance from the context map, or creates a new one if not present.
+     * Retrieve or create an instance of the {@link ExtraOptionRepository}.
      *
      * @return The {@link ExtraOptionRepository} instance.
      */
     public ExtraOptionRepository extraOptionRepository() {
-        ExtraOptionRepository extraOptionRepository = (ExtraOptionRepository) context.getOrDefault("extraOptionRepository", new ExtraOptionDAO());
+        ExtraOptionRepository extraOptionRepository = (ExtraOptionRepository) context.getOrDefault(
+                "extraOptionRepository",
+                new ExtraOptionDAO(databaseManager(), new ResultSetMapper<>(ExtraOption.class)));
         putIfNotContains("extraOptionRepository", extraOptionRepository);
         return extraOptionRepository;
     }
@@ -150,7 +183,8 @@ public class Configuration {
      * @return The {@link AuditRepository} instance.
      */
     public AuditRepository auditRepository() {
-        AuditRepository auditRepository = (AuditRepository) context.getOrDefault("auditRepository", new AuditDAO());
+        AuditRepository auditRepository = (AuditRepository) context.getOrDefault("auditRepository",
+                new AuditDAO(databaseManager(), new ResultSetMapper<>(Audit.class)));
         putIfNotContains("auditRepository", auditRepository);
         return auditRepository;
     }
@@ -171,16 +205,108 @@ public class Configuration {
      * Loads necessary services into the context map if they are not already present.
      */
     private void loadServices() {
-        WorkoutDiaryService workoutDiaryService = (WorkoutDiaryService) context.getOrDefault("workoutDiaryService",
-                new WorkoutDiaryService(workoutRepository(), workoutDiaryRepository(), extraOptionRepository(), workoutTypeRepository()));
-        ExtraOptionService extraOptionService = (ExtraOptionService) context.getOrDefault("extraOptionService", new ExtraOptionService(extraOptionRepository()));
-        WorkoutTypeService workoutTypeService = (WorkoutTypeService) context.getOrDefault("workoutTypeService", new WorkoutTypeService(workoutTypeRepository()));
-        AuditService auditService = (AuditService) context.getOrDefault("auditService", new AuditService(auditRepository()));
-        SecurityService securityService = (SecurityService) context.getOrDefault("securityService", new SecurityService(userRepository(), auditService));
-        putIfNotContains("workoutDiaryService", workoutDiaryService);
+        WorkoutService workoutService = (WorkoutService) context.getOrDefault("workoutService",
+                new WorkoutService(workoutRepository(), extraOptionRepository()));
+        putIfNotContains("workoutService", workoutService);
+
+        ExtraOptionService extraOptionService = (ExtraOptionService) context.getOrDefault("extraOptionService",
+                new ExtraOptionService(extraOptionRepository()));
         putIfNotContains("extraOptionService", extraOptionService);
+
+        WorkoutTypeService workoutTypeService = (WorkoutTypeService) context.getOrDefault("workoutTypeService",
+                new WorkoutTypeService(workoutTypeRepository()));
         putIfNotContains("workoutTypeService", workoutTypeService);
-        putIfNotContains("securityService", securityService);
+
+        AuditService auditService = (AuditService) context.getOrDefault("auditService",
+                new AuditService(auditRepository()));
         putIfNotContains("auditService", auditService);
+
+        SecurityService securityService = (SecurityService) context.getOrDefault("securityService",
+                new SecurityService(userRepository(), auditService));
+        putIfNotContains("securityService", securityService);
+
+        ExtraOptionTypeService extraOptionTypeService = (ExtraOptionTypeService) context.getOrDefault(
+                "extraOptionTypeService", new ExtraOptionTypeService(extraOptionTypeRepository()));
+        putIfNotContains("extraOptionTypeService", extraOptionTypeService);
+    }
+
+    /**
+     * Retrieves the {@link DataSource} instance from the context map or creates a new one if not present.
+     *
+     * @param properties The properties containing database connection information.
+     * @return The {@link DataSource} instance.
+     */
+    public DataSource dataSource(Properties properties) {
+        DataSource dataSource = (DataSource) context.getOrDefault("dataSource", new DataSource(
+                properties.getProperty("database.url"),
+                properties.getProperty("database.user"),
+                properties.getProperty("database.password"),
+                properties.getProperty("database.driver")));
+        putIfNotContains("dataSource", dataSource);
+        return dataSource;
+    }
+
+    /**
+     * Retrieve the application properties from the properties file.
+     *
+     * @return The application properties.
+     * @throws RuntimeException If an error occurs while loading the properties file.
+     */
+    public Properties properties() {
+        if (context.containsKey("properties")) {
+            return (Properties) context.get("properties");
+        }
+        Properties properties = new Properties();
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading application properties");
+        }
+        putIfNotContains("properties", properties);
+        return properties;
+    }
+
+    /**
+     * Perform database migration using Liquibase.
+     *
+     * @param dataSource The data source for the database.
+     * @throws RuntimeException If an error occurs during database migration.
+     */
+    public void databaseMigration(DataSource dataSource) {
+        try {
+            Connection connection = DriverManager.getConnection(dataSource.getUrl(), dataSource.getUser(), dataSource.getPassword());
+            Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            Liquibase liquibase = new Liquibase("db/changelog/changelog.xml", new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+        } catch (SQLException | LiquibaseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieve or create an instance of the {@link DatabaseManager}.
+     *
+     * @return The {@link DatabaseManager} instance.
+     */
+    public DatabaseManager databaseManager() {
+        DatabaseManager databaseManager = (DatabaseManager) context.getOrDefault(
+                "databaseManager",
+                new DatabaseManager(connectionPool()));
+        putIfNotContains("databaseManager", databaseManager);
+        return databaseManager;
+    }
+
+    /**
+     * Retrieve or create an instance of the {@link  ConnectionPool}.
+     *
+     * @return The {@link ConnectionPool} instance.
+     */
+    public ConnectionPool connectionPool() {
+        ConnectionPool connectionPool = (ConnectionPool) context.getOrDefault(
+                "connectionPool",
+                new ConnectionPool(dataSource(properties()))
+        );
+        putIfNotContains("connectionPool", connectionPool);
+        return connectionPool;
     }
 }

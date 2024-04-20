@@ -1,52 +1,36 @@
 package kz.yossshhhi.dao.repository;
 
-
 import kz.yossshhhi.model.ExtraOption;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Repository interface for managing ExtraOption entities.
+ * Repository interface for managing {@link ExtraOption} entities.
  */
 public interface ExtraOptionRepository {
 
     /**
-     * Finds an ExtraOption by its unique identifier.
-     *
-     * @param id The unique identifier of the ExtraOption.
-     * @return An Optional containing the ExtraOption if found, or empty otherwise.
-     */
-    Optional<ExtraOption> findById(Long id);
-
-    /**
-     * Finds an ExtraOption by its name.
-     *
-     * @param name The name of the ExtraOption.
-     * @return An Optional containing the ExtraOption if found, or empty otherwise.
-     */
-    Optional<ExtraOption> findByName(String name);
-
-    /**
-     * Saves the given ExtraOption.
+     * Saves an ExtraOption entity to the database.
      *
      * @param extraOption The ExtraOption to save.
-     * @return The saved ExtraOption.
+     * @return The saved ExtraOption entity.
      */
     ExtraOption save(ExtraOption extraOption);
 
     /**
-     * Retrieves all ExtraOptions.
+     * Finds all ExtraOption entities associated with a given Workout ID.
      *
-     * @return A list of all ExtraOptions.
+     * @param workoutId The ID of the Workout to find ExtraOptions for.
+     * @return A list of ExtraOption entities associated with the given Workout ID.
      */
-    List<ExtraOption> findAll();
+    List<ExtraOption> findAllByWorkoutId(Long workoutId);
 
     /**
-     * Retrieves the total count of ExtraOptions.
+     * Deletes a list of ExtraOption entities from the database.
      *
-     * @return The total count of ExtraOptions.
+     * @param extraOptions The list of ExtraOptions to delete.
      */
-    Long getCount();
+    void deleteAll(List<ExtraOption> extraOptions);
+
 }
 

@@ -5,75 +5,88 @@ import kz.yossshhhi.model.ExtraOption;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@DisplayName("Extra Option Service Tests")
 class ExtraOptionServiceTest {
 
     @Mock
     private ExtraOptionRepository extraOptionRepository;
 
+    @InjectMocks
     private ExtraOptionService extraOptionService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        extraOptionService = new ExtraOptionService(extraOptionRepository);
     }
 
     @Test
-    @DisplayName("Create: Extra Option Does Not Exist")
-    void create_ExtraOptionDoesNotExist_ShouldCreateExtraOption() {
-        ExtraOption extraOption = ExtraOption.builder().build();
-        extraOption.setName("Option");
+    @DisplayName("Save Extra Option")
+    void save_ShouldReturnSavedExtraOption() {
+        ExtraOption extraOption = ExtraOption.builder()
+                .id(1L)
+                .build();
 
-        when(extraOptionRepository.findByName(extraOption.getName())).thenReturn(Optional.empty());
         when(extraOptionRepository.save(extraOption)).thenReturn(extraOption);
 
-        ExtraOption createdExtraOption = extraOptionService.create(extraOption);
+        ExtraOption savedExtraOption = extraOptionService.save(extraOption);
 
-        assertNotNull(createdExtraOption);
+        assertEquals(extraOption, savedExtraOption);
         verify(extraOptionRepository, times(1)).save(extraOption);
-        assertEquals(extraOption, createdExtraOption);
+        verifyNoMoreInteractions(extraOptionRepository);
     }
 
     @Test
-    @DisplayName("Find By ID: Existing ID")
-    void findById_ExistingId_ShouldReturnExtraOption() {
-        Long id = 1L;
-        ExtraOption expectedExtraOption = ExtraOption.builder().build();
-        expectedExtraOption.setId(id);
+    @DisplayName("Delete All Extra Options")
+    void deleteAll_ShouldNotReturnAnyValue() {
+        List<ExtraOption> extraOptions = new ArrayList<>();
 
-        when(extraOptionRepository.findById(id)).thenReturn(Optional.of(expectedExtraOption));
+        extraOptionService.deleteAll(extraOptions);
 
-        ExtraOption actualExtraOption = extraOptionService.findById(id);
-
-        assertNotNull(actualExtraOption);
-        assertEquals(expectedExtraOption, actualExtraOption);
+        verify(extraOptionRepository, times(1)).deleteAll(extraOptions);
+        verifyNoMoreInteractions(extraOptionRepository);
     }
 
     @Test
-    @DisplayName("Find All: Should Return List of Extra Options")
-    void findAll_ShouldReturnListOfExtraOptions() {
-        List<ExtraOption> expectedExtraOptions = new ArrayList<>();
-        expectedExtraOptions.add(ExtraOption.builder().build());
-        expectedExtraOptions.add(ExtraOption.builder().build());
+    @DisplayName("Save All Extra Options By Workout")
+    void saveAllByWorkout_ShouldReturnListOfSavedExtraOptions() {
+        Long workoutId = 1L;
+        Map<Long, Integer> inputMap = new HashMap<>();
+        inputMap.put(1L, 10);
+        inputMap.put(2L, 20);
 
-        when(extraOptionRepository.findAll()).thenReturn(expectedExtraOptions);
+        List<ExtraOption> expectedSavedExtraOptions = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : inputMap.entrySet()) {
+            expectedSavedExtraOptions.add(ExtraOption.builder()
+                    .workoutId(workoutId)
+                    .typeId(entry.getKey())
+                    .value(entry.getValue())
+                    .id(null)
+                    .build());
+        }
 
-        List<ExtraOption> actualExtraOptions = extraOptionService.findAll();
+        when(extraOptionRepository.save(any(ExtraOption.class))).thenAnswer(invocation -> {
+            ExtraOption savedExtraOption = invocation.getArgument(0);
+            savedExtraOption.setId(null);
+            return savedExtraOption;
+        });
 
-        assertNotNull(actualExtraOptions);
-        assertEquals(expectedExtraOptions.size(), actualExtraOptions.size());
-        assertTrue(expectedExtraOptions.containsAll(actualExtraOptions) && actualExtraOptions.containsAll(expectedExtraOptions));
+        List<ExtraOption> result = extraOptionService.saveAllByWorkout(inputMap, workoutId);
+
+        assertEquals(expectedSavedExtraOptions.size(), result.size());
+        assertEquals(expectedSavedExtraOptions, result);
+        verify(extraOptionRepository, times(inputMap.size())).save(any(ExtraOption.class));
+        verifyNoMoreInteractions(extraOptionRepository);
     }
 
 }

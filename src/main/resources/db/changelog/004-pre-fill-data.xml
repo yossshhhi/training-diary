@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+                   logicalFilePath="db/changelog.xml">
+
+    <changeSet id="pre-fill-data" author="yossshhhi">
+        <!-- Pre-fill users table -->
+        <insert schemaName="diary_schema" tableName="users">
+            <column name="username" value="invalid"/>
+            <column name="password" value="invalid"/>
+            <column name="role" value="USER"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="users">
+            <column name="username" value="admin"/>
+            <column name="password" value="admin"/>
+            <column name="role" value="ADMIN"/>
+        </insert>
+
+        <!-- Pre-fill extra_option_type table -->
+        <insert schemaName="diary_schema" tableName="extra_option_type">
+            <column name="name" value="Repetitions"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="extra_option_type">
+            <column name="name" value="Distance covered"/>
+        </insert>
+
+        <!-- Pre-fill workout_type table -->
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Cardio"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Power training"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Functional training"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Dance workouts"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Yoga"/>
+        </insert>
+        <insert schemaName="diary_schema" tableName="workout_type">
+            <column name="name" value="Pilates"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

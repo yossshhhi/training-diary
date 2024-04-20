@@ -1,14 +1,14 @@
 package kz.yossshhhi.handler;
 
 import kz.yossshhhi.controller.AdminController;
-import kz.yossshhhi.controller.WorkoutDiaryController;
+import kz.yossshhhi.controller.WorkoutController;
 import kz.yossshhhi.in.console.ConsoleReader;
-import kz.yossshhhi.model.ExtraOption;
 import kz.yossshhhi.model.Workout;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.out.ConsoleWriter;
 import kz.yossshhhi.service.AuditService;
+import kz.yossshhhi.util.ConnectionPool;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -31,9 +31,9 @@ public class CommandHandler {
     private final ConsoleWriter writer;
 
     /**
-     * The controller for managing workout diary operations.
+     * The controller for managing workout operations.
      */
-    private final WorkoutDiaryController workoutDiaryController;
+    private final WorkoutController workoutController;
 
     /**
      * The controller for administrative operations.
@@ -46,20 +46,27 @@ public class CommandHandler {
     private final AuditService auditService;
 
     /**
+     * The connection pool used for managing database connections.
+     */
+    private final ConnectionPool connectionPool;
+
+    /**
      * Constructs a CommandHandler instance with the necessary dependencies.
      *
      * @param reader                 The console reader.
      * @param writer                 The console writer.
-     * @param workoutDiaryController The workout diary controller.
+     * @param workoutController      The workout controller.
      * @param adminController        The admin controller.
      * @param auditService           The audit service.
+     * @param connectionPool         The connection pool for managing database connections.
      */
-    public CommandHandler(ConsoleReader reader, ConsoleWriter writer, WorkoutDiaryController workoutDiaryController, AdminController adminController, AuditService auditService) {
+    public CommandHandler(ConsoleReader reader, ConsoleWriter writer, WorkoutController workoutController, AdminController adminController, AuditService auditService, ConnectionPool connectionPool) {
         this.reader = reader;
         this.writer = writer;
-        this.workoutDiaryController = workoutDiaryController;
+        this.workoutController = workoutController;
         this.adminController = adminController;
         this.auditService = auditService;
+        this.connectionPool = connectionPool;
     }
 
     /**
@@ -71,9 +78,9 @@ public class CommandHandler {
         Long workoutTypeId = getWorkoutTypeId();
         Integer duration = getDuration();
         Integer burnedCalories = getCalories();
-        Map<ExtraOption, Integer> extraOptionsInput = getExtraOptions();
+        Map<Long, Integer> extraOptionsInput = getExtraOptions();
 
-        workoutDiaryController.create(userId, duration, burnedCalories, workoutTypeId, extraOptionsInput);
+        workoutController.create(userId, duration, burnedCalories, workoutTypeId, extraOptionsInput);
         auditService.audit(userId, AuditAction.RECORD_WORKOUT, AuditType.SUCCESS);
     }
 
@@ -83,7 +90,7 @@ public class CommandHandler {
      * @param userId The ID of the user.
      */
     public void showWorkoutListByUser(Long userId) {
-        editingWorkoutList(workoutDiaryController.getUserWorkoutList(userId), userId);
+        editingWorkoutList(workoutController.getUserWorkoutList(userId), userId);
     }
 
     /**
@@ -104,22 +111,22 @@ public class CommandHandler {
     }
 
     /**
-     * Adds a new extra option.
+     * Adds a new extra option type.
      */
-    public void addExtraOption() {
-        writer.write("Enter extra option name: ");
-        adminController.addExtraOption(reader.read());
+    public void addExtraOptionType() {
+        writer.write("Enter extra option type name: ");
+        adminController.addExtraOptionType(reader.read());
     }
 
     /**
-     * Displays statistics for the user's workout diary.
+     * Displays statistics for the user's workout.
      *
      * @param userId The ID of the user.
      */
-    public void getDiaryStatistics(Long userId) {
+    public void getWorkoutStatistics(Long userId) {
         writer.write("Enter the desired number of days for which you want to view statistics: ");
         int days = Math.toIntExact(parseLong(reader.read()));
-        writer.write(workoutDiaryController.getStatistics(days, userId));
+        writer.write(workoutController.getStatistics(userId, days));
     }
 
     /**
@@ -162,12 +169,12 @@ public class CommandHandler {
      * @throws IllegalArgumentException If the entered workout type does not exist.
      */
     private Long getWorkoutTypeId() {
-        String workoutTypesToString = workoutDiaryController.getWorkoutTypesToString() + "Select the workout type:";
+        String workoutTypesToString = workoutController.getWorkoutTypesToString() + "Select the workout type:";
         Long workoutTypeId = 0L;
         while (workoutTypeId == 0) {
             workoutTypeId = choseActionNumber(workoutTypesToString);
         }
-        if (!workoutDiaryController.existsWorkoutTypeById(workoutTypeId)) {
+        if (!workoutController.existsWorkoutTypeById(workoutTypeId)) {
             throw new IllegalArgumentException("The entered workout type does not exist");
         }
         return workoutTypeId;
@@ -198,18 +205,18 @@ public class CommandHandler {
      *
      * @return A map of extra options and their values.
      */
-    private Map<ExtraOption, Integer> getExtraOptions() {
-        String extraOptionsToString = workoutDiaryController.getExtraOptionsToString() + 0 + ". Exit current menu\nSelect the parameter you want to add:";
-        Map<Long, String> extraOptionsInput = new HashMap<>();
+    private Map<Long, Integer> getExtraOptions() {
+        String extraOptionsToString = workoutController.getExtraOptionsToString() + 0 + ". Exit current menu\nSelect the parameter you want to add:";
+        Map<Long, Integer> extraOptionsInput = new HashMap<>();
         while (true) {
             Long number = choseActionNumber(extraOptionsToString);
             if (number == 0) {
                 break;
             }
             writer.write("Enter the value of the selected parameter: ");
-            extraOptionsInput.put(number, reader.read());
+            extraOptionsInput.put(number, Math.toIntExact(parseLong(reader.read())));
         }
-        return workoutDiaryController.createExtraOptionMap(extraOptionsInput);
+        return extraOptionsInput;
     }
 
     /**
@@ -230,8 +237,13 @@ public class CommandHandler {
      * @param userId    The ID of the user performing the action.
      */
     private void deleteRecord(Long workoutId, Long userId) {
-        workoutDiaryController.delete(workoutId, userId);
-        auditService.audit(userId, AuditAction.DELETE_WORKOUT, AuditType.SUCCESS);
+        try {
+            workoutController.delete(workoutId);
+            auditService.audit(userId, AuditAction.DELETE_WORKOUT, AuditType.SUCCESS);
+        } catch (RuntimeException ex) {
+            auditService.audit(userId, AuditAction.DELETE_WORKOUT, AuditType.FAIL);
+            throw new RuntimeException("Deleting workout record failed. " + ex.getMessage());
+        }
     }
 
     /**
@@ -241,36 +253,45 @@ public class CommandHandler {
      * @param userId    The ID of the user performing the action.
      */
     private void editRecord(Long workoutId, Long userId) {
-        Workout workout = workoutDiaryController.findById(workoutId);
+        Workout workout = workoutController.findById(workoutId);
+        Map<Long, Integer> extraOptions = new HashMap<>();
         String choseRecordItem = """
                 1. Workout type
                 2. Duration
                 3. Calories
                 4. Extra options (all parameters are completely overwritten)
-                5. Exit current menu
+                5. Edit
+                6. Cancel
                 Enter the number of the item you want to change:""";
         int action;
         while (true) {
             writer.write(choseRecordItem);
             action = Math.toIntExact(parseLong(reader.read()));
             if (action == 5) {
+                workoutController.update(workout);
+                if (!extraOptions.isEmpty())
+                    workoutController.updateExtraOptions(workout.getExtraOptions(), extraOptions, workoutId);
+                auditService.audit(userId, AuditAction.EDIT_WORKOUT, AuditType.SUCCESS);
+                break;
+            } else if (action == 6) {
+                auditService.audit(userId, AuditAction.EDIT_WORKOUT, AuditType.FAIL);
                 break;
             }
             switch (action) {
                 case 1 -> workout.setWorkoutTypeId(getWorkoutTypeId());
                 case 2 -> workout.setDuration(getDuration());
                 case 3 -> workout.setBurnedCalories(getCalories());
-                case 4 -> workout.setExtraOptions(getExtraOptions());
+                case 4 -> extraOptions = getExtraOptions();
                 default -> writer.write("Unknown item. Try again");
             }
         }
-        auditService.audit(userId, AuditAction.EDIT_WORKOUT, AuditType.SUCCESS);
     }
 
     /**
      * Exits the application.
      */
     public void exit() {
+        connectionPool.close();
         System.exit(0);
     }
 

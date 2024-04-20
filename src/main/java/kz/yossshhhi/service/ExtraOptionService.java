@@ -3,59 +3,64 @@ package kz.yossshhhi.service;
 import kz.yossshhhi.dao.repository.ExtraOptionRepository;
 import kz.yossshhhi.model.ExtraOption;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Service class for managing {@link ExtraOption} entities.
+ * Service class for managing ExtraOption entities.
  */
 public class ExtraOptionService {
 
     /**
-     * The repository for managing {@link ExtraOption} entities.
+     * Repository for handling ExtraOption entities in the database.
      */
     private final ExtraOptionRepository extraOptionRepository;
 
     /**
-     * Constructs an {@code ExtraOptionService} with the specified {@link ExtraOptionRepository}.
+     * Constructs an ExtraOptionService with the provided ExtraOptionRepository.
      *
-     * @param extraOptionRepository the repository to be used by the service
+     * @param extraOptionRepository the repository for ExtraOption entities
      */
     public ExtraOptionService(ExtraOptionRepository extraOptionRepository) {
         this.extraOptionRepository = extraOptionRepository;
     }
 
     /**
-     * Creates a new extra option.
+     * Saves the given ExtraOption entity.
      *
-     * @param extraOption the extra option to create
-     * @return the created extra option
-     * @throws IllegalArgumentException if an extra option with the same name already exists
+     * @param extraOption the ExtraOption entity to save
+     * @return the saved ExtraOption entity
      */
-    public ExtraOption create(ExtraOption extraOption) {
-        extraOptionRepository.findByName(extraOption.getName()).ifPresent(option -> {
-            throw new IllegalArgumentException("Extra option with " + option.getName() + " name already exists");
-        });
+    public ExtraOption save(ExtraOption extraOption) {
         return extraOptionRepository.save(extraOption);
     }
 
     /**
-     * Finds an extra option by its ID.
+     * Deletes all ExtraOption entities in the provided list.
      *
-     * @param id the ID of the extra option to find
-     * @return the found extra option
-     * @throws IllegalArgumentException if no extra option with the specified ID is found
+     * @param extraOptions the list of ExtraOption entities to delete
      */
-    public ExtraOption findById(Long id) {
-        return extraOptionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Extra option not found"));
+    public void deleteAll(List<ExtraOption> extraOptions) {
+        extraOptionRepository.deleteAll(extraOptions);
     }
 
     /**
-     * Retrieves all extra options.
+     * Saves a list of ExtraOption entities associated with a workout.
      *
-     * @return a list of all extra options
+     * @param inputMap   a map containing ExtraOption type IDs and their corresponding values
+     * @param workoutId  the ID of the associated workout
+     * @return the list of saved ExtraOption entities
      */
-    public List<ExtraOption> findAll() {
-        return extraOptionRepository.findAll();
+    public List<ExtraOption> saveAllByWorkout(Map<Long, Integer> inputMap, Long workoutId) {
+        List<ExtraOption> extraOptions = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : inputMap.entrySet()) {
+            extraOptions.add(save(ExtraOption.builder()
+                    .workoutId(workoutId)
+                    .typeId(entry.getKey())
+                    .value(entry.getValue())
+                    .build()));
+        }
+        return extraOptions;
     }
 }
-

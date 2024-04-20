@@ -2,31 +2,35 @@ package kz.yossshhhi.dao;
 
 import kz.yossshhhi.dao.repository.AuditRepository;
 import kz.yossshhhi.model.Audit;
+import kz.yossshhhi.util.DatabaseManager;
+import kz.yossshhhi.util.ResultSetMapper;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AuditDAO implements AuditRepository {
-    private final Map<Long, Audit> audits;
-    private Long id;
+    private final DatabaseManager databaseManager;
+    private final ResultSetMapper<Audit> resultSetMapper;
 
-    public AuditDAO() {
-        this.audits = new LinkedHashMap<>();
-        this.id = 0L;
+    public AuditDAO(DatabaseManager databaseManager, ResultSetMapper<Audit> resultSetMapper) {
+        this.databaseManager = databaseManager;
+        this.resultSetMapper = resultSetMapper;
     }
-
 
     @Override
     public List<Audit> findAll() {
-        return new ArrayList<>(audits.values());
+        return databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.audit", resultSetMapper);
     }
 
     @Override
     public Audit save(Audit audit) {
-        audit.setId(++id);
-        audits.put(audit.getId(), audit);
+        long generatedKey = databaseManager.executeUpdate(
+                """
+                        INSERT INTO diary_schema.audit (created_at, user_id, audit_action, audit_type)
+                        VALUES (?, ?, ?, ?)
+                         """,
+                audit.getCreatedAt(), audit.getUserId(), audit.getAuditAction().toString(), audit.getAuditType().toString());
+        audit.setId(generatedKey);
         return audit;
     }
 }
