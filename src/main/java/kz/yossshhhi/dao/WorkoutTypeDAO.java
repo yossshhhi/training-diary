@@ -2,47 +2,50 @@ package kz.yossshhhi.dao;
 
 import kz.yossshhhi.dao.repository.WorkoutTypeRepository;
 import kz.yossshhhi.model.WorkoutType;
+import kz.yossshhhi.util.DatabaseManager;
+import kz.yossshhhi.util.ResultSetMapper;
 
 import java.util.*;
 
 public class WorkoutTypeDAO implements WorkoutTypeRepository {
-    private final Map<Long, WorkoutType> workoutTypes;
-    private Long id;
+    private final DatabaseManager databaseManager;
+    private final ResultSetMapper<WorkoutType> resultSetMapper;
 
-    public WorkoutTypeDAO() {
-        this.workoutTypes = new LinkedHashMap<>();
-        this.id = 0L;
-
-        workoutTypes.put(++id, new WorkoutType(id, "Cardio"));
-        workoutTypes.put(++id, new WorkoutType(id, "Power training"));
-        workoutTypes.put(++id, new WorkoutType(id, "Functional training"));
-        workoutTypes.put(++id, new WorkoutType(id, "Dance workouts"));
-        workoutTypes.put(++id, new WorkoutType(id, "Yoga"));
-        workoutTypes.put(++id, new WorkoutType(id, "Pilates"));
+    public WorkoutTypeDAO(DatabaseManager databaseManager, ResultSetMapper<WorkoutType> resultSetMapper) {
+        this.databaseManager = databaseManager;
+        this.resultSetMapper = resultSetMapper;
     }
 
     @Override
     public Optional<WorkoutType> findById(Long id) {
-        return Optional.ofNullable(workoutTypes.get(id));
+        List<WorkoutType> workoutTypes = databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.workout_type WHERE id = ?",
+                resultSetMapper, id);
+        return workoutTypes.isEmpty() ? Optional.empty() : Optional.of(workoutTypes.get(0));
     }
 
     @Override
-    public Optional<WorkoutType> findByName(String username) {
-        return workoutTypes.values().stream()
-                .filter(workoutType -> workoutType.getName().equals(username))
-                .findFirst();
+    public Optional<WorkoutType> findByName(String name) {
+        List<WorkoutType> workoutTypes = databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.workout_type WHERE name = ?",
+                resultSetMapper, name);
+        return workoutTypes.isEmpty() ? Optional.empty() : Optional.of(workoutTypes.get(0));
     }
 
     @Override
     public WorkoutType save(WorkoutType workoutType) {
-        workoutType.setId(++id);
-        workoutTypes.put(workoutType.getId(), workoutType);
+        long generatedKey = databaseManager.executeUpdate(
+                "INSERT INTO diary_schema.workout_type (name) VALUES (?)",
+                workoutType.getName());
+        workoutType.setId(generatedKey);
         return workoutType;
     }
 
     @Override
     public List<WorkoutType> findAll() {
-        return new ArrayList<>(workoutTypes.values());
+        return databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.workout_type",
+                resultSetMapper);
     }
 
 }

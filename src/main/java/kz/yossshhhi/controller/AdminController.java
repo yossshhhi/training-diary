@@ -1,10 +1,10 @@
 package kz.yossshhhi.controller;
 
-import kz.yossshhhi.model.ExtraOption;
+import kz.yossshhhi.model.ExtraOptionType;
 import kz.yossshhhi.model.Workout;
 import kz.yossshhhi.model.WorkoutType;
-import kz.yossshhhi.service.ExtraOptionService;
-import kz.yossshhhi.service.WorkoutDiaryService;
+import kz.yossshhhi.service.ExtraOptionTypeService;
+import kz.yossshhhi.service.WorkoutService;
 import kz.yossshhhi.service.WorkoutTypeService;
 
 import java.util.List;
@@ -14,27 +14,27 @@ import java.util.List;
  */
 public class AdminController {
 
-    /** Service for managing workout diary entries. */
-    private final WorkoutDiaryService workoutDiaryService;
+    /** Service for managing workout entries. */
+    private final WorkoutService workoutService;
 
     /** Service for managing workout types. */
     private final WorkoutTypeService workoutTypeService;
 
-    /** Service for managing extra options. */
-    private final ExtraOptionService extraOptionService;
+    /** Service for managing extra option types. */
+    private final ExtraOptionTypeService extraOptionTypeService;
 
     /**
      * Constructs a new AdminController with the specified services.
      *
-     * @param workoutDiaryService Service for managing workout diary entries.
+     * @param workoutService Service for managing workout entries.
      * @param workoutTypeService Service for managing workout types.
-     * @param extraOptionService Service for managing extra options.
+     * @param extraOptionTypeService Service for managing extra option types.
      */
-    public AdminController(WorkoutDiaryService workoutDiaryService, WorkoutTypeService workoutTypeService,
-                           ExtraOptionService extraOptionService) {
-        this.workoutDiaryService = workoutDiaryService;
+    public AdminController(WorkoutService workoutService, WorkoutTypeService workoutTypeService,
+                           ExtraOptionTypeService extraOptionTypeService) {
+        this.workoutService = workoutService;
         this.workoutTypeService = workoutTypeService;
-        this.extraOptionService = extraOptionService;
+        this.extraOptionTypeService = extraOptionTypeService;
     }
 
     /**
@@ -44,11 +44,11 @@ public class AdminController {
      * @throws IllegalArgumentException if there are no workout records.
      */
     public String showAllWorkouts() {
-        List<Workout> workouts = workoutDiaryService.findAll();
+        List<Workout> workouts = workoutService.findAll();
         if (workouts.isEmpty()) {
             throw new IllegalArgumentException("There are no workout records");
         }
-        return workoutDiaryService.workoutListToString(workouts);
+        return workoutService.workoutListToString(workouts);
     }
 
     /**
@@ -65,16 +65,16 @@ public class AdminController {
     }
 
     /**
-     * Adds a new extra option with the specified name.
+     * Adds a new extra option type with the specified name.
      *
-     * @param name The name of the new extra option.
+     * @param name The name of the new extra option type.
      * @throws IllegalArgumentException if the name is empty or blank.
      */
-    public void addExtraOption(String name) {
+    public void addExtraOptionType(String name) {
         if (name.isBlank()) {
-            throw new IllegalArgumentException("The extra option name cannot be empty");
+            throw new IllegalArgumentException("The extra option type name cannot be empty");
         }
-        extraOptionService.create(ExtraOption.builder().name(name).build());
+        extraOptionTypeService.create(ExtraOptionType.builder().name(name).build());
     }
 }
 

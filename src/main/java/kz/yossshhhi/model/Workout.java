@@ -3,7 +3,7 @@ package kz.yossshhhi.model;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Map;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,6 +16,11 @@ public class Workout {
      * The unique identifier of the workout.
      */
     private Long id;
+
+    /**
+     * The identifier of the user associated with this workout.
+     */
+    private Long userId;
 
     /**
      * The ID of the workout type associated with this workout.
@@ -38,8 +43,8 @@ public class Workout {
     private Integer burnedCalories;
 
     /**
-     * A map containing extra options associated with the workout and their corresponding values.
+     * A list containing extra options associated with the workout.
      * For example, extra options could include distance covered, speed, etc.
      */
-    private Map<ExtraOption, Integer> extraOptions;
+    private List<ExtraOption> extraOptions;
 }

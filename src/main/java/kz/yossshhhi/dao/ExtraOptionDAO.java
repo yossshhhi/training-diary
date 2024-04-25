@@ -2,47 +2,50 @@ package kz.yossshhhi.dao;
 
 import kz.yossshhhi.dao.repository.ExtraOptionRepository;
 import kz.yossshhhi.model.ExtraOption;
+import kz.yossshhhi.util.DatabaseManager;
+import kz.yossshhhi.util.ResultSetMapper;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 public class ExtraOptionDAO implements ExtraOptionRepository {
-    private final Map<Long, ExtraOption> extraOptions;
-    private Long id;
+    private final DatabaseManager databaseManager;
+    private final ResultSetMapper<ExtraOption> resultSetMapper;
 
-    public ExtraOptionDAO() {
-        this.extraOptions = new LinkedHashMap<>();
-        this.id = 0L;
-
-        extraOptions.put(++id, new ExtraOption(id, "Repetitions"));
-        extraOptions.put(++id, new ExtraOption(id, "Distance covered"));
-    }
-
-    @Override
-    public Optional<ExtraOption> findById(Long id) {
-        return Optional.ofNullable(extraOptions.get(id));
-    }
-
-    @Override
-    public Optional<ExtraOption> findByName(String name) {
-        return extraOptions.values().stream()
-                .filter(option -> option.getName().equals(name))
-                .findFirst();
+    public ExtraOptionDAO(DatabaseManager databaseManager, ResultSetMapper<ExtraOption> resultSetMapper) {
+        this.databaseManager = databaseManager;
+        this.resultSetMapper = resultSetMapper;
     }
 
     @Override
     public ExtraOption save(ExtraOption extraOption) {
-        extraOption.setId(++id);
-        extraOptions.put(extraOption.getId(), extraOption);
+        long generatedKey = databaseManager.executeUpdate("""
+                INSERT INTO diary_schema.extra_option (workout_id, type_id, value)
+                VALUES (?, ?, ?)
+                """, extraOption.getWorkoutId(), extraOption.getTypeId(), extraOption.getValue());
+        extraOption.setId(generatedKey);
         return extraOption;
     }
 
     @Override
-    public List<ExtraOption> findAll() {
-        return new ArrayList<>(extraOptions.values());
+    public List<ExtraOption> findAllByWorkoutId(Long workoutId) {
+        return databaseManager.executeQuery("""
+                SELECT * FROM diary_schema.extra_option
+                WHERE workout_id = ?
+                """, resultSetMapper, workoutId);
     }
 
     @Override
-    public Long getCount() {
-        return id;
+    public void deleteAll(List<ExtraOption> extraOptions) {
+        List<Long> ids = extraOptions.stream()
+                .map(ExtraOption::getId)
+                .toList();
+        Object[] params = ids.toArray(new Object[0]);
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = String.format("""
+            DELETE FROM diary_schema.extra_option
+            WHERE id IN (%s)
+            """, placeholders);
+        databaseManager.executeUpdate(sql, params);
     }
 }

@@ -45,7 +45,7 @@ public class SecurityService {
      */
     public User registration(AuthenticationRequest request) {
         userRepository.findByUsername(request.getUsername()).ifPresent(user -> {
-            auditService.audit(-1L, AuditAction.REGISTRATION, AuditType.FAIL);
+            auditService.audit(1L, AuditAction.REGISTRATION, AuditType.FAIL);
             throw new RegistrationException("User with " + user.getUsername() + " username already exists");
         });
 
@@ -68,7 +68,7 @@ public class SecurityService {
     public User authenticate(AuthenticationRequest request) {
         Optional<User> userOptional = userRepository.findByUsername(request.getUsername());
         if (userOptional.isEmpty()) {
-            auditService.audit(-1L, AuditAction.LOG_IN, AuditType.FAIL);
+            auditService.audit(1L, AuditAction.LOG_IN, AuditType.FAIL);
             throw new AuthenticationException("User not found");
         }
 

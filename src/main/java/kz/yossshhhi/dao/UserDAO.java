@@ -1,44 +1,43 @@
 package kz.yossshhhi.dao;
 
 import kz.yossshhhi.dao.repository.UserRepository;
-import kz.yossshhhi.model.enums.Role;
 import kz.yossshhhi.model.User;
+import kz.yossshhhi.util.DatabaseManager;
+import kz.yossshhhi.util.ResultSetMapper;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 public class UserDAO implements UserRepository {
-    private final Map<Long, User> users;
-    private Long id;
+    private final DatabaseManager databaseManager;
+    private final ResultSetMapper<User> resultSetMapper;
 
-    public UserDAO () {
-        users = new HashMap<>();
-        id = 0L;
-
-        save(User.builder()
-                .username("admin")
-                .password("admin")
-                .role(Role.ADMIN)
-                .build());
+    public UserDAO(DatabaseManager databaseManager, ResultSetMapper<User> resultSetMapper) {
+        this.databaseManager = databaseManager;
+        this.resultSetMapper = resultSetMapper;
     }
 
     @Override
     public Optional<User> findById(Long id) {
-        return Optional.ofNullable(users.get(id));
+        List<User> users = databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.users WHERE id = ?", resultSetMapper, id);
+        return users.isEmpty() ? Optional.empty() : Optional.ofNullable(users.get(0));
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
-        return users.values().stream()
-                .filter(u -> u.getUsername().equals(username))
-                .findFirst();
+        List<User> users = databaseManager.executeQuery(
+                "SELECT * FROM diary_schema.users WHERE username = ?", resultSetMapper, username);
+        return users.isEmpty() ? Optional.empty() : Optional.ofNullable(users.get(0));
     }
 
     @Override
     public User save(User user) {
-        user.setId(++id);
-        users.put(user.getId(), user);
+        long generatedKey = databaseManager.executeUpdate("""
+                INSERT INTO diary_schema.users (username, password, role)
+                VALUES (?, ?, ?)
+                """, user.getUsername(), user.getPassword(), user.getRole().toString());
+        user.setId(generatedKey);
         return user;
     }
 }

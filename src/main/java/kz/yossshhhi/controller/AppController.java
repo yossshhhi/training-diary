@@ -90,10 +90,11 @@ public class AppController {
         } catch (RuntimeException ex) {
             logger.error(ex.getMessage());
         }
-
-        switch (user.getRole().ordinal()) {
-            case 0 -> adminMenu(user.getId());
-            case 1 -> userMenu(user);
+        if (user.getRole() != null) {
+            switch (user.getRole().toString()) {
+                case "ADMIN" -> adminMenu(user.getId());
+                case "USER" -> userMenu(user);
+            }
         }
     }
 
@@ -118,7 +119,7 @@ public class AppController {
                 switch (commandHandler.getReader().read()) {
                     case "1" -> commandHandler.showAllWorkoutList(userId);
                     case "2" -> commandHandler.addWorkoutType();
-                    case "3" -> commandHandler.addExtraOption();
+                    case "3" -> commandHandler.addExtraOptionType();
                     case "4" -> commandHandler.getWriter().write(auditService.showAll());
                     case "5" -> {
                         inSystem = false;
@@ -153,7 +154,7 @@ public class AppController {
                 switch (commandHandler.getReader().read()) {
                     case "1" -> commandHandler.getWorkoutDataAndCreate(user.getId());
                     case "2" -> commandHandler.showWorkoutListByUser(user.getId());
-                    case "3" -> commandHandler.getDiaryStatistics(user.getId());
+                    case "3" -> commandHandler.getWorkoutStatistics(user.getId());
                     case "4" -> {
                         inSystem = false;
                         auditService.audit(user.getId(), AuditAction.LOG_OUT, AuditType.SUCCESS);

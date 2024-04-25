@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'kz.yossshhhi'
+version = '1.0-SNAPSHOT'
+
+ext {
+    junitVersion = '5.10.2'
+    mockitoVersion = '5.11.0'
+    lombokVersion = '1.18.32'
+    slf4jVersion = '2.0.12'
+    logbackVersion = '1.4.14'
+    liquibaseVersion = '4.27.0'
+    testcontainersVersion = '1.19.7'
+    postgresqlVersion = '42.7.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation "org.liquibase:liquibase-core:$liquibaseVersion"
+    implementation "org.postgresql:postgresql:$postgresqlVersion"
+
+    testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
+    testImplementation "org.testcontainers:postgresql:$testcontainersVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+    testImplementation platform("org.junit:junit-bom:$junitVersion")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'kz.yossshhhi.Application'
+    }
+    from sourceSets.main.output
+}

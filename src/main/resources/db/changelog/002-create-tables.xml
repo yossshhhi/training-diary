@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+                   logicalFilePath="db/changelog.xml">
+
+    <changeSet id="create-tables" author="yossshhhi">
+
+        <!-- Create table for User -->
+        <createTable schemaName="diary_schema" tableName="users">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Create table for Audit -->
+        <createTable schemaName="diary_schema" tableName="audit">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="audit_action" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="audit_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableSchemaName="diary_schema" baseTableName="audit" baseColumnNames="user_id"
+                                 constraintName="fk_user_to_audit"
+                                 referencedTableSchemaName="diary_schema" referencedTableName="users" referencedColumnNames="id"/>
+
+        <!-- Create table for WorkoutType -->
+        <createTable schemaName="diary_schema" tableName="workout_type">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+        </createTable>
+
+        <!-- Create table for Workout -->
+        <createTable schemaName="diary_schema" tableName="workout">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="workout_type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="burned_calories" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableSchemaName="diary_schema" baseTableName="workout" baseColumnNames="user_id"
+                                 constraintName="fk_user_to_workout"
+                                 referencedTableSchemaName="diary_schema" referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableSchemaName="diary_schema" baseTableName="workout" baseColumnNames="workout_type_id"
+                                 constraintName="fk_workout_type_to_workout"
+                                 referencedTableSchemaName="diary_schema" referencedTableName="workout_type" referencedColumnNames="id"/>
+
+        <!-- Create table for ExtraOptionType -->
+        <createTable schemaName="diary_schema" tableName="extra_option_type">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Create table for ExtraOption -->
+        <createTable schemaName="diary_schema" tableName="extra_option">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="workout_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableSchemaName="diary_schema" baseTableName="extra_option" baseColumnNames="workout_id"
+                                 constraintName="fk_workout_to_extra_option"
+                                 referencedTableSchemaName="diary_schema" referencedTableName="workout" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableSchemaName="diary_schema" baseTableName="extra_option" baseColumnNames="type_id"
+                                 constraintName="fk_extra_option_type_to_extra_option"
+                                 referencedTableSchemaName="diary_schema" referencedTableName="extra_option_type" referencedColumnNames="id"/>
+
+    </changeSet>
+</databaseChangeLog>
