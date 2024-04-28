@@ -17,6 +17,11 @@ ext {
     liquibaseVersion = '4.27.0'
     testcontainersVersion = '1.19.7'
     postgresqlVersion = '42.7.3'
+    jakartaVersion = '6.0.0'
+    jacksonVersion = '2.17.0'
+    mapstructVersion = '1.5.5.Final'
+    jwtVersion = '0.12.5'
+    aspectjVersion = '1.9.22'
 }
 
 repositories {
@@ -30,16 +35,16 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
     implementation "org.liquibase:liquibase-core:$liquibaseVersion"
     implementation "org.postgresql:postgresql:$postgresqlVersion"
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0'
-    implementation 'org.aspectj:aspectjrt:1.9.22'
-    runtimeOnly 'org.aspectj:aspectjweaver:1.9.22'
+    compileOnly "jakarta.servlet:jakarta.servlet-api:$jakartaVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+    implementation "io.jsonwebtoken:jjwt-api:$jwtVersion"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+    implementation "org.aspectj:aspectjrt:$aspectjVersion"
+    runtimeOnly "org.aspectj:aspectjweaver:$aspectjVersion"
 
     testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
     testImplementation "org.testcontainers:postgresql:$testcontainersVersion"
