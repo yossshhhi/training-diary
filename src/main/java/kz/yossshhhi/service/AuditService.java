@@ -6,6 +6,7 @@ import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service class for auditing user actions.
@@ -57,12 +58,8 @@ public class AuditService {
      *
      * @return A string representation of all audit entries.
      */
-    public String showAll() {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Audit audit : auditRepository.findAll()) {
-            stringBuilder.append(audit.toString()).append("\n");
-        }
-        return stringBuilder.toString();
+    public List<Audit> findAll() {
+        return auditRepository.findAll();
     }
 }
 

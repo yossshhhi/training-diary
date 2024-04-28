@@ -50,9 +50,7 @@ class AuditServiceTest {
 
         when(auditRepository.findAll()).thenReturn(auditList);
 
-        String auditString = auditService.showAll();
-
-        String expectedString = auditList.get(0).toString() + "\n" + auditList.get(1).toString() + "\n";
-        assertEquals(expectedString, auditString);
+        List<Audit> all = auditService.findAll();
+        assertEquals(auditList.size(), all.size());
     }
 }

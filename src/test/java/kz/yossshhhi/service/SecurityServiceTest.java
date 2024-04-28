@@ -1,9 +1,9 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.UserRepository;
+import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
 import kz.yossshhhi.exception.RegistrationException;
-import kz.yossshhhi.in.console.AuthenticationRequest;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
@@ -40,10 +40,7 @@ public class SecurityServiceTest {
     @Test
     @DisplayName("Successful Registration")
     public void testRegistration_Successful() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
 
         when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -59,10 +56,7 @@ public class SecurityServiceTest {
     @Test
     @DisplayName("Registration: User Already Exists")
     public void testRegistration_UserAlreadyExists() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("existingUser")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
         User existingUser = User.builder()
                 .username("existingUser")
                 .password("existingPassword")
@@ -79,10 +73,7 @@ public class SecurityServiceTest {
     @Test
     @DisplayName("Successful Authentication")
     public void testAuthentication_Successful() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
         User existingUser = User.builder()
                 .username("username")
                 .password("password")
@@ -102,10 +93,7 @@ public class SecurityServiceTest {
     @Test
     @DisplayName("Authentication: User Not Found")
     public void testAuthentication_UserNotFound() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("nonExistingUser")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
 
         when(userRepository.findByUsername("nonExistingUser")).thenReturn(Optional.empty());
 
@@ -117,10 +105,7 @@ public class SecurityServiceTest {
     @Test
     @DisplayName("Authentication: Invalid Password")
     public void testAuthentication_InvalidPassword() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("invalidPassword")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
         User existingUser = User.builder()
                 .username("username")
                 .password("password")

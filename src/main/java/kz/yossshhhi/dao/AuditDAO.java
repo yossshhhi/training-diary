@@ -18,8 +18,10 @@ public class AuditDAO implements AuditRepository {
 
     @Override
     public List<Audit> findAll() {
-        return databaseManager.executeQuery(
-                "SELECT * FROM diary_schema.audit", resultSetMapper);
+        return databaseManager.executeQuery("""
+                SELECT a.*, u.username
+                FROM diary_schema.audit AS a
+                JOIN diary_schema.users AS u ON a.user_id = u.id""", resultSetMapper);
     }
 
     @Override

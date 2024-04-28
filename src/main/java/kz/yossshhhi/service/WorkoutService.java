@@ -1,6 +1,7 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.*;
+import kz.yossshhhi.dto.WorkoutDTO;
 import kz.yossshhhi.model.*;
 
 import java.time.LocalDate;
@@ -43,7 +44,9 @@ public class WorkoutService {
         if (workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(workout.getUserId(), workout.getCreatedAt(), workout.getWorkoutTypeId())) {
             throw new IllegalArgumentException("Workout with the same date and workout type already exists in the diary");
         }
-        return workoutRepository.save(workout);
+        Workout save = workoutRepository.save(workout);
+        saveExtraOptions(workout.getExtraOptions(), save.getId());
+        return save;
     }
 
     /**
@@ -101,6 +104,7 @@ public class WorkoutService {
      */
     public void update(Workout workout) {
         workoutRepository.save(workout);
+        saveExtraOptions(workout.getExtraOptions(), workout.getId());
     }
 
     /**
@@ -111,15 +115,9 @@ public class WorkoutService {
      * @param days   The number of days for which the statistics report is calculated.
      * @return A formatted string containing the statistics report.
      */
-    public String getStatistics(Long userId, Integer days) {
+    public AggregateWorkoutData getStatistics(Long userId, Integer days) {
         LocalDate dayAfter = LocalDate.now().minusDays(days);
-        AggregateWorkoutData data = workoutRepository.getAggregateDataByUserIdAndAfterDate(userId, dayAfter);
-        return String.format("""
-                Statistics for the last %d days
-                Total training completed: %d
-                Total duration:           %d
-                Total calories burned:    %d
-                """, days, data.getWorkoutCount(), data.getTotalDuration(), data.getTotalBurnedCalories());
+        return workoutRepository.getAggregateDataByUserIdAndAfterDate(userId, dayAfter);
     }
 
     /**
@@ -145,6 +143,13 @@ public class WorkoutService {
     private void fillExtraOptions(List<Workout> workouts) {
         for (Workout workout : workouts) {
             workout.setExtraOptions(extraOptionRepository.findAllByWorkoutId(workout.getId()));
+        }
+    }
+
+    private void saveExtraOptions(List<ExtraOption> options, Long workoutId) {
+        for (ExtraOption option : options) {
+            option.setWorkoutId(workoutId);
+            extraOptionRepository.save(option);
         }
     }
 }

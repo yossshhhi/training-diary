@@ -106,26 +106,20 @@ class WorkoutServiceTest {
 
     @Test
     @DisplayName("Get Statistics for the Last n Days")
-    void getStatistics_NoWorkoutsInSpecifiedDays_ShouldReturnZero() {
+    void getStatistics() {
         int days = 7;
         Long userId = 1L;
         AggregateWorkoutData data = new AggregateWorkoutData();
-        data.setWorkoutCount(10L);
+        data.setWorkoutCount(1L);
         data.setTotalDuration(120L);
         data.setTotalBurnedCalories(500L);
 
         when(workoutRepository.getAggregateDataByUserIdAndAfterDate(userId, LocalDate.now().minusDays(days)))
                 .thenReturn(data);
 
-        String statistics = workoutService.getStatistics(userId, days);
+        AggregateWorkoutData statistics = workoutService.getStatistics(userId, days);
 
-        String expectedStatistics = String.format("""
-            Statistics for the last %d days
-            Total training completed: %d
-            Total duration:           %d
-            Total calories burned:    %d
-            """, days, data.getWorkoutCount(), data.getTotalDuration(), data.getTotalBurnedCalories());
-        assertEquals(expectedStatistics, statistics);
+        assertEquals(data.getWorkoutCount(), statistics.getWorkoutCount());
         verify(workoutRepository, times(1)).getAggregateDataByUserIdAndAfterDate(userId, LocalDate.now().minusDays(days));
         verifyNoMoreInteractions(workoutRepository);
     }

@@ -43,14 +43,8 @@ public class ExtraOptionTypeService {
      *
      * @return A string containing the IDs and names of all extra option types.
      */
-    public String getExtraOptionTypesToString() {
-        List<ExtraOptionType> extraOptionTypes = extraOptionTypeRepository.findAll();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (ExtraOptionType extraOptionType : extraOptionTypes) {
-            stringBuilder.append(extraOptionType.getId()).append(". ")
-                    .append(extraOptionType.getName()).append("\n");
-        }
-        return stringBuilder.toString();
+    public List<ExtraOptionType> findAll() {
+        return extraOptionTypeRepository.findAll();
     }
 }
 
