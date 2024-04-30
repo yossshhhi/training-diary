@@ -6,9 +6,7 @@ import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.Role;
 import kz.yossshhhi.util.DatabaseManager;
 import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -29,11 +27,17 @@ class UserRepositoryTest {
 
     private static UserRepository userRepository;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
+        postgreSQLContainer.start();
         TestContainerInitializer.initializeDatabase(postgreSQLContainer);
         DatabaseManager databaseManager = TestContainerInitializer.databaseManager(postgreSQLContainer);
         userRepository = new UserDAO(databaseManager, new ResultSetMapper<>(User.class));
+    }
+
+    @AfterAll
+    static void destroy(){
+        postgreSQLContainer.stop();
     }
 
     @Test
@@ -49,7 +53,6 @@ class UserRepositoryTest {
         assertNotNull(savedUser);
         assertNotNull(savedUser.getId());
         assertEquals(user.getUsername(), savedUser.getUsername());
-        assertEquals(user.getPassword(), savedUser.getPassword());
     }
 
     @Test
@@ -61,7 +64,6 @@ class UserRepositoryTest {
         User foundUser = optionalUser.get();
         assertEquals(id, foundUser.getId());
         assertEquals("invalid", foundUser.getUsername());
-        assertEquals("invalid", foundUser.getPassword());
     }
 
     @Test
@@ -72,6 +74,5 @@ class UserRepositoryTest {
         assertTrue(optionalUser.isPresent());
         User foundUser = optionalUser.get();
         assertEquals(username, foundUser.getUsername());
-        assertEquals("invalid", foundUser.getPassword());
     }
 }

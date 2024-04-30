@@ -65,7 +65,7 @@ public class ApplicationContextListener implements ServletContextListener {
         ExtraOptionTypeRepository extraOptionTypeRepository = new ExtraOptionTypeDAO(databaseManager,
                 new ResultSetMapper<>(ExtraOptionType.class));
 
-        AuditService auditService = new AuditService(auditRepository);
+        AuditService auditService = new AuditService(auditRepository, userRepository);
         AuditAspect auditAspect = Aspects.aspectOf(AuditAspect.class);
         auditAspect.initServices(auditService);
 

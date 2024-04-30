@@ -1,6 +1,7 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.AuditRepository;
+import kz.yossshhhi.dao.repository.UserRepository;
 import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
@@ -22,13 +23,14 @@ class AuditServiceTest {
 
     @Mock
     private AuditRepository auditRepository;
-
+    @Mock
+    private UserRepository userRepository;
     private AuditService auditService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        auditService = new AuditService(auditRepository);
+        auditService = new AuditService(auditRepository, userRepository);
     }
 
     @Test

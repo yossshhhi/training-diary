@@ -1,7 +1,6 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.*;
-import kz.yossshhhi.dto.WorkoutDTO;
 import kz.yossshhhi.model.*;
 
 import java.time.LocalDate;
@@ -118,20 +117,6 @@ public class WorkoutService {
     public AggregateWorkoutData getStatistics(Long userId, Integer days) {
         LocalDate dayAfter = LocalDate.now().minusDays(days);
         return workoutRepository.getAggregateDataByUserIdAndAfterDate(userId, dayAfter);
-    }
-
-    /**
-     * Converts a list of workouts to a string representation.
-     *
-     * @param workoutList The list of workouts to convert.
-     * @return A string representation of the workout list.
-     */
-    public String workoutListToString(List<Workout> workoutList) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Workout workout : workoutList) {
-            stringBuilder.append(workout.toString()).append("\n");
-        }
-        return stringBuilder.toString();
     }
 
     /**

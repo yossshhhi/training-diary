@@ -22,6 +22,7 @@ ext {
     mapstructVersion = '1.5.5.Final'
     jwtVersion = '0.12.5'
     aspectjVersion = '1.9.22'
+    assertjVersion = '3.25.3'
 }
 
 repositories {
@@ -47,6 +48,7 @@ dependencies {
     runtimeOnly "org.aspectj:aspectjweaver:$aspectjVersion"
 
     testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
     testImplementation "org.testcontainers:postgresql:$testcontainersVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"

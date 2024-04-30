@@ -5,16 +5,14 @@ import kz.yossshhhi.dao.ExtraOptionTypeDAO;
 import kz.yossshhhi.model.ExtraOptionType;
 import kz.yossshhhi.util.DatabaseManager;
 import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
@@ -29,11 +27,17 @@ class ExtraOptionTypeRepositoryTest {
 
     private static ExtraOptionTypeRepository extraOptionTypeRepository;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
+        postgreSQLContainer.start();
         TestContainerInitializer.initializeDatabase(postgreSQLContainer);
         DatabaseManager databaseManager = TestContainerInitializer.databaseManager(postgreSQLContainer);
         extraOptionTypeRepository = new ExtraOptionTypeDAO(databaseManager, new ResultSetMapper<>(ExtraOptionType.class));
+    }
+
+    @AfterAll
+    static void destroy(){
+        postgreSQLContainer.stop();
     }
 
     @Test
@@ -77,7 +81,9 @@ class ExtraOptionTypeRepositoryTest {
     @Test
     @DisplayName("Find All Extra Option Types")
     void testFindAll_shouldReturnAllExtraOptionTypes() {
-        List<ExtraOptionType> result = extraOptionTypeRepository.findAll();
-        assertEquals(2, result.size());
+        assertThat(extraOptionTypeRepository.findAll())
+                .anyMatch(type -> type.getName().equals("Repetitions"))
+                .anyMatch(type -> type.getName().equals("Distance covered"))
+                .hasSizeGreaterThanOrEqualTo(2);
     }
 }

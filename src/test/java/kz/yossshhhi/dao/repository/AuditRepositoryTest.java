@@ -6,9 +6,7 @@ import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,10 +28,16 @@ public class AuditRepositoryTest {
 
     private static AuditRepository auditRepository;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
+        postgreSQLContainer.start();
         TestContainerInitializer.initializeDatabase(postgreSQLContainer);
         auditRepository = new AuditDAO(TestContainerInitializer.databaseManager(postgreSQLContainer), new ResultSetMapper<>(Audit.class));
+    }
+
+    @AfterAll
+    static void destroy(){
+        postgreSQLContainer.stop();
     }
 
     @Test

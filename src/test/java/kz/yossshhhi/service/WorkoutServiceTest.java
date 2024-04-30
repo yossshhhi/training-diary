@@ -36,10 +36,12 @@ class WorkoutServiceTest {
     @Test
     @DisplayName("Creating Workout When Not Exists Should Save and Return Workout")
     void create_WorkoutDoesNotExist_ShouldSaveAndReturnWorkout() {
-        Workout newWorkout = new Workout();
-        newWorkout.setUserId(1L);
-        newWorkout.setCreatedAt(LocalDate.now());
-        newWorkout.setWorkoutTypeId(1L);
+        Workout newWorkout = Workout.builder()
+                .userId(1L)
+                .createdAt(LocalDate.now())
+                .workoutTypeId(1L)
+                .extraOptions(new ArrayList<>())
+                .build();
 
         when(workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(newWorkout.getUserId(), newWorkout.getCreatedAt(), newWorkout.getWorkoutTypeId())).thenReturn(false);
         when(workoutRepository.save(newWorkout)).thenReturn(newWorkout);

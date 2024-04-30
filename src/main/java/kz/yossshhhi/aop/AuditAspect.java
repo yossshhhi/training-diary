@@ -1,5 +1,6 @@
 package kz.yossshhhi.aop;
 
+import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.service.AuditService;
@@ -17,7 +18,7 @@ public class AuditAspect {
         this.auditService = auditService;
     }
 
-    @Pointcut("@annotation(auditable)")
+    @Pointcut("execution(* *(..)) && @annotation(auditable)")
     public void auditedMethods(Auditable auditable) {}
 
 
@@ -27,9 +28,9 @@ public class AuditAspect {
         auditService.audit(user.getId(), auditable.action(), AuditType.SUCCESS);
     }
 
-    @AfterThrowing(pointcut = "@annotation(auditable) && args(userId,..)", argNames = "auditable,userId")
-    public void afterFailAudit(Auditable auditable, Long userId) {
-        auditService.audit(userId, auditable.action(), AuditType.FAIL);
+    @AfterThrowing(pointcut = "execution(* *(..)) && @annotation(auditable) && args(request,..)", argNames = "auditable,request")
+    public void afterFailAudit(Auditable auditable, AuthenticationDTO request) {
+        auditService.audit(request.username(), auditable.action(), AuditType.FAIL);
     }
 }
 

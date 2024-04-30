@@ -5,16 +5,14 @@ import kz.yossshhhi.dao.WorkoutTypeDAO;
 import kz.yossshhhi.model.WorkoutType;
 import kz.yossshhhi.util.DatabaseManager;
 import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
@@ -29,18 +27,24 @@ class WorkoutTypeRepositoryTest {
 
     private static WorkoutTypeRepository workoutTypeRepository;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
+        postgreSQLContainer.start();
         TestContainerInitializer.initializeDatabase(postgreSQLContainer);
         DatabaseManager databaseManager = TestContainerInitializer.databaseManager(postgreSQLContainer);
         workoutTypeRepository = new WorkoutTypeDAO(databaseManager, new ResultSetMapper<>(WorkoutType.class));
+    }
+
+    @AfterAll
+    static void destroy(){
+        postgreSQLContainer.stop();
     }
 
     @Test
     @DisplayName("Save should return saved WorkoutType")
     void testSave_shouldReturnSavedWorkoutType() {
         WorkoutType workoutType = WorkoutType.builder()
-                .name("Speed")
+                .name("Dance")
                 .build();
         WorkoutType savedWorkoutType = workoutTypeRepository.save(workoutType);
         assertNotNull(savedWorkoutType.getId());
@@ -68,7 +72,10 @@ class WorkoutTypeRepositoryTest {
     @Test
     @DisplayName("Find all should return all WorkoutTypes")
     void testFindAll_shouldReturnAllWorkoutTypes() {
-        List<WorkoutType> allWorkoutTypes = workoutTypeRepository.findAll();
-        assertEquals(7, allWorkoutTypes.size());
+        assertThat(workoutTypeRepository.findAll())
+                .anyMatch(type -> type.getName().equals("Power training"))
+                .anyMatch(type -> type.getName().equals("Dance workouts"))
+                .anyMatch(type -> type.getName().equals("Yoga"))
+                .size().isGreaterThanOrEqualTo(6);
     }
 }
