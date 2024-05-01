@@ -27,6 +27,7 @@ public class Audit {
      * The identifier of the user associated with the audit.
      */
     private Long userId;
+    private String username;
 
     /**
      * The action performed during the audit.

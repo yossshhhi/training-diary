@@ -1,19 +1,26 @@
 package kz.yossshhhi.service;
 
+import kz.yossshhhi.aop.Auditable;
+import kz.yossshhhi.aop.Loggable;
 import kz.yossshhhi.dao.repository.UserRepository;
+import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
+import kz.yossshhhi.exception.InvalidCredentialsException;
 import kz.yossshhhi.exception.RegistrationException;
-import kz.yossshhhi.in.console.AuthenticationRequest;
-import kz.yossshhhi.model.enums.AuditAction;
-import kz.yossshhhi.model.enums.AuditType;
-import kz.yossshhhi.model.enums.Role;
 import kz.yossshhhi.model.User;
+import kz.yossshhhi.model.enums.AuditAction;
+import kz.yossshhhi.model.enums.Role;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
  * Provides security-related services such as user registration and authentication.
  */
+@Loggable
 public class SecurityService {
     /**
      * The repository for managing user data.
@@ -21,19 +28,12 @@ public class SecurityService {
     private final UserRepository userRepository;
 
     /**
-     * The service responsible for auditing user actions.
-     */
-    private final AuditService auditService;
-
-    /**
      * Constructs a new SecurityService with the specified UserRepository and AuditService.
      *
      * @param userRepository The repository for managing user data.
-     * @param auditService   The service responsible for auditing user actions.
      */
-    public SecurityService(UserRepository userRepository, AuditService auditService) {
+    public SecurityService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.auditService = auditService;
     }
 
     /**
@@ -43,19 +43,21 @@ public class SecurityService {
      * @return The newly registered user.
      * @throws RegistrationException If a user with the provided username already exists.
      */
-    public User registration(AuthenticationRequest request) {
-        userRepository.findByUsername(request.getUsername()).ifPresent(user -> {
-            auditService.audit(1L, AuditAction.REGISTRATION, AuditType.FAIL);
+    @Auditable(action = AuditAction.REGISTRATION)
+    public User registration(AuthenticationDTO request) {
+        validRequest(request);
+
+        userRepository.findByUsername(request.username()).ifPresent(user -> {
             throw new RegistrationException("User with " + user.getUsername() + " username already exists");
         });
 
-        User user = userRepository.save(User.builder()
-                .username(request.getUsername())
-                .password(request.getPassword())
+        String hashedPassword = hashPassword(request.password());
+
+        return userRepository.save(User.builder()
+                .username(request.username())
+                .password(hashedPassword)
                 .role(Role.USER)
                 .build());
-        auditService.audit(user.getId(), AuditAction.REGISTRATION, AuditType.SUCCESS);
-        return user;
     }
 
     /**
@@ -65,22 +67,56 @@ public class SecurityService {
      * @return The authenticated user.
      * @throws AuthenticationException If the user is not found or the password is invalid.
      */
-    public User authenticate(AuthenticationRequest request) {
-        Optional<User> userOptional = userRepository.findByUsername(request.getUsername());
+    @Auditable(action = AuditAction.LOG_IN)
+    public User authenticate(AuthenticationDTO request) {
+        validRequest(request);
+
+        Optional<User> userOptional = userRepository.findByUsername(request.username());
         if (userOptional.isEmpty()) {
-            auditService.audit(1L, AuditAction.LOG_IN, AuditType.FAIL);
             throw new AuthenticationException("User not found");
         }
 
         User user = userOptional.get();
-
-        if (!user.getPassword().equals(request.getPassword())) {
-            auditService.audit(user.getId(), AuditAction.LOG_IN, AuditType.FAIL);
+        String hashedPassword = hashPassword(request.password());
+        if (!user.getPassword().equals(hashedPassword)) {
             throw new AuthenticationException("Invalid password");
         }
 
-        auditService.audit(user.getId(), AuditAction.LOG_IN, AuditType.SUCCESS);
         return user;
+    }
+
+    private void validRequest(AuthenticationDTO request) {
+        if (request.username().isBlank() || request.password().isBlank()) {
+            throw new InvalidCredentialsException("Username or password is blank");
+        }
+
+        if (request.username().length() < 3 || request.username().length() > 50) {
+            throw new InvalidCredentialsException("Username length must be between 3 and 50");
+        }
+
+        if (!request.username().matches("^[a-zA-Z0-9]+$")) {
+            throw new InvalidCredentialsException("Username must consist of letters and numbers only");
+        }
+
+        if (request.password().length() < 5 || request.password().length() > 50) {
+            throw new InvalidCredentialsException("Password length must be between 5 and 50");
+        }
+    }
+
+    /**
+     * Hashes the provided password using SHA-256 algorithm.
+     *
+     * @param password The password to hash.
+     * @return The hashed password.
+     */
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encodedHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
     }
 }
 

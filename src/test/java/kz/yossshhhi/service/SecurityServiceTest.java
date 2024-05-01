@@ -1,13 +1,15 @@
 package kz.yossshhhi.service;
 
+import kz.yossshhhi.aop.AuditAspect;
 import kz.yossshhhi.dao.repository.UserRepository;
+import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
 import kz.yossshhhi.exception.RegistrationException;
-import kz.yossshhhi.in.console.AuthenticationRequest;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.model.enums.Role;
+import org.aspectj.lang.Aspects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,15 +39,14 @@ public class SecurityServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        AuditAspect auditAspect = Aspects.aspectOf(AuditAspect.class);
+        auditAspect.initServices(auditService);
     }
 
     @Test
     @DisplayName("Successful Registration")
     public void testRegistration_Successful() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
 
         when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -52,40 +55,32 @@ public class SecurityServiceTest {
 
         assertNotNull(registeredUser);
         assertEquals("username", registeredUser.getUsername());
-        assertEquals("password", registeredUser.getPassword());
         assertEquals(Role.USER, registeredUser.getRole());
+        verify(userRepository, times(1)).save(any(User.class));
+
+        verify(auditService, times(1)).audit(eq(registeredUser.getId()), eq(AuditAction.REGISTRATION), eq(AuditType.SUCCESS));
     }
 
     @Test
     @DisplayName("Registration: User Already Exists")
     public void testRegistration_UserAlreadyExists() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("existingUser")
-                .password("password")
-                .build();
-        User existingUser = User.builder()
-                .username("existingUser")
-                .password("existingPassword")
-                .role(Role.USER)
-                .build();
-
-        when(userRepository.findByUsername("existingUser")).thenReturn(Optional.of(existingUser));
+        AuthenticationDTO request = new AuthenticationDTO("existinguser", "password");
+        when(userRepository.findByUsername("existinguser")).thenReturn(Optional.of(new User()));
 
         assertThrows(RegistrationException.class, () -> securityService.registration(request));
+        verify(userRepository, never()).save(any(User.class));
 
-        verify(auditService, times(1)).audit(anyLong(), eq(AuditAction.REGISTRATION), eq(AuditType.FAIL));
+        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.REGISTRATION), eq(AuditType.FAIL));
     }
 
     @Test
     @DisplayName("Successful Authentication")
     public void testAuthentication_Successful() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
+        String hashedPassword = hashPassword(request.password());
         User existingUser = User.builder()
                 .username("username")
-                .password("password")
+                .password(hashedPassword)
                 .role(Role.USER)
                 .build();
 
@@ -95,32 +90,27 @@ public class SecurityServiceTest {
 
         assertNotNull(authenticatedUser);
         assertEquals("username", authenticatedUser.getUsername());
-        assertEquals("password", authenticatedUser.getPassword());
         assertEquals(Role.USER, authenticatedUser.getRole());
+
+        verify(auditService, times(1)).audit(eq(authenticatedUser.getId()), eq(AuditAction.LOG_IN), eq(AuditType.SUCCESS));
     }
 
     @Test
     @DisplayName("Authentication: User Not Found")
     public void testAuthentication_UserNotFound() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("nonExistingUser")
-                .password("password")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
 
         when(userRepository.findByUsername("nonExistingUser")).thenReturn(Optional.empty());
 
         assertThrows(AuthenticationException.class, () -> securityService.authenticate(request));
 
-        verify(auditService, times(1)).audit(anyLong(), eq(AuditAction.LOG_IN), eq(AuditType.FAIL));
+        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.LOG_IN), eq(AuditType.FAIL));
     }
 
     @Test
     @DisplayName("Authentication: Invalid Password")
     public void testAuthentication_InvalidPassword() {
-        AuthenticationRequest request = AuthenticationRequest.builder()
-                .username("username")
-                .password("invalidPassword")
-                .build();
+        AuthenticationDTO request = new AuthenticationDTO("username", "password");
         User existingUser = User.builder()
                 .username("username")
                 .password("password")
@@ -130,5 +120,18 @@ public class SecurityServiceTest {
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(existingUser));
 
         assertThrows(AuthenticationException.class, () -> securityService.authenticate(request));
+
+        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.LOG_IN), eq(AuditType.FAIL));
+    }
+
+    private String hashPassword(String password) {
+        try {
+            Method method = SecurityService.class.getDeclaredMethod("hashPassword", String.class);
+            method.setAccessible(true);
+            return (String) method.invoke(securityService, password);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

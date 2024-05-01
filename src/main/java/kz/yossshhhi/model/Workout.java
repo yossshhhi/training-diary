@@ -21,11 +21,13 @@ public class Workout {
      * The identifier of the user associated with this workout.
      */
     private Long userId;
+    private String username;
 
     /**
      * The ID of the workout type associated with this workout.
      */
     private Long workoutTypeId;
+    private String workoutTypeName;
 
     /**
      * The date when the workout was created.

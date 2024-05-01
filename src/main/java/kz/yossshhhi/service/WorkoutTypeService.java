@@ -67,19 +67,5 @@ public class WorkoutTypeService {
         return workoutTypeRepository.findAll();
     }
 
-    /**
-     * Retrieves a string representation of all workout types.
-     *
-     * @return A string containing the IDs and names of all workout types.
-     */
-    public String getWorkoutTypesToString() {
-        List<WorkoutType> workoutTypes = workoutTypeRepository.findAll();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (WorkoutType workoutType : workoutTypes) {
-            stringBuilder.append(workoutType.getId()).append(". ")
-                    .append(workoutType.getName()).append("\n");
-        }
-        return stringBuilder.toString();
-    }
 }
 

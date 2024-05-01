@@ -1,11 +1,15 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.AuditRepository;
+import kz.yossshhhi.dao.repository.UserRepository;
 import kz.yossshhhi.model.Audit;
+import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Service class for auditing user actions.
@@ -15,14 +19,16 @@ public class AuditService {
      * The repository for accessing audit data.
      */
     private final AuditRepository auditRepository;
+    private final UserRepository userRepository;
 
     /**
      * Constructs an instance of AuditService.
      *
      * @param auditRepository The repository for accessing audit data.
      */
-    public AuditService(AuditRepository auditRepository) {
+    public AuditService(AuditRepository auditRepository, UserRepository userRepository) {
         this.auditRepository = auditRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -35,6 +41,18 @@ public class AuditService {
     public void audit(Long userId, AuditAction action, AuditType type) {
         Audit audit = Audit.builder()
                 .userId(userId)
+                .createdAt(LocalDateTime.now())
+                .auditAction(action)
+                .auditType(type)
+                .build();
+        save(audit);
+    }
+
+    public void audit(String username, AuditAction action, AuditType type) {
+        Optional<User> optional = userRepository.findByUsername(username);
+        User user = optional.orElseGet(() -> User.builder().id(1L).build());
+        Audit audit = Audit.builder()
+                .userId(user.getId())
                 .createdAt(LocalDateTime.now())
                 .auditAction(action)
                 .auditType(type)
@@ -57,12 +75,8 @@ public class AuditService {
      *
      * @return A string representation of all audit entries.
      */
-    public String showAll() {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Audit audit : auditRepository.findAll()) {
-            stringBuilder.append(audit.toString()).append("\n");
-        }
-        return stringBuilder.toString();
+    public List<Audit> findAll() {
+        return auditRepository.findAll();
     }
 }
 

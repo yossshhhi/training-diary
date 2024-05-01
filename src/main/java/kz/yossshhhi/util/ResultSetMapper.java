@@ -25,7 +25,7 @@ public class ResultSetMapper<T> {
     /**
      * Represents a set of field names that should be excluded during the mapping process.
      */
-    private final Set<String> excludedFields;
+//    private final Set<String> excludedFields;
 
     /**
      * Constructs a ResultSetMapper instance for mapping ResultSet data to objects of the specified class.
@@ -34,8 +34,8 @@ public class ResultSetMapper<T> {
      */
     public ResultSetMapper(Class<T> clazz) {
         this.clazz = clazz;
-        excludedFields = new HashSet<>();
-        excludedFields.add("extraOptions");
+//        excludedFields = new HashSet<>();
+//        excludedFields.add("extraOptions");
     }
 
     /**
@@ -66,13 +66,18 @@ public class ResultSetMapper<T> {
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
             for (Field field : clazz.getDeclaredFields()) {
-                if (excludedFields.contains(field.getName())) {
-                    continue;
-                }
+//                if (excludedFields.contains(field.getName())) {
+//                    continue;
+//                }
                 field.setAccessible(true);
                 String columnName = field.getName();
-                Object value = resultSet.getObject(convertToSnakeCase(columnName));
+                Object value;
 
+                try {
+                    value = resultSet.getObject(convertToSnakeCase(columnName));
+                } catch (Exception e) {
+                    value = null;
+                }
                 if (field.getType().isEnum() && value != null) {
                     Class<?> enumType = field.getType();
                     for (Object enumConstant : enumType.getEnumConstants()) {
@@ -87,7 +92,8 @@ public class ResultSetMapper<T> {
                     value = resultSet.getTimestamp(convertToSnakeCase(columnName)).toLocalDateTime();
                 }
 
-                field.set(obj, value);
+                if (value != null)
+                    field.set(obj, value);
             }
         } catch (Exception ex) {
             throw new SQLException("Error mapping ResultSet to object: " + ex.getMessage(), ex);

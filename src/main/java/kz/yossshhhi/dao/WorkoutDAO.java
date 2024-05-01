@@ -66,14 +66,21 @@ public class WorkoutDAO implements WorkoutRepository {
 
     @Override
     public List<Workout> findAll() {
-        return databaseManager.executeQuery(
-                "SELECT * FROM diary_schema.workout", resultSetMapper);
+        return databaseManager.executeQuery("""
+                SELECT w.*, u.username, t.name AS workout_type_name
+                FROM diary_schema.workout AS w
+                JOIN diary_schema.users AS u ON w.user_id = u.id
+                JOIN diary_schema.workout_type AS t ON w.workout_type_id = t.id""", resultSetMapper);
     }
 
     @Override
     public List<Workout> findAllByUserId(Long userId) {
-        return databaseManager.executeQuery(
-                "SELECT * FROM diary_schema.workout WHERE user_id = ?", resultSetMapper, userId);
+        return databaseManager.executeQuery("""
+                SELECT w.*, u.username, t.name AS workout_type_name
+                FROM diary_schema.workout AS w
+                JOIN diary_schema.users AS u ON w.user_id = u.id
+                JOIN diary_schema.workout_type AS t ON w.workout_type_id = t.id
+                WHERE user_id = ?""", resultSetMapper, userId);
     }
 
     @Override

@@ -30,9 +30,10 @@ public class ExtraOptionDAO implements ExtraOptionRepository {
     @Override
     public List<ExtraOption> findAllByWorkoutId(Long workoutId) {
         return databaseManager.executeQuery("""
-                SELECT * FROM diary_schema.extra_option
-                WHERE workout_id = ?
-                """, resultSetMapper, workoutId);
+                SELECT o.*, t.name AS type_name
+                FROM diary_schema.extra_option AS o
+                JOIN diary_schema.extra_option_type AS t ON o.type_id = t.id
+                WHERE workout_id = ?""", resultSetMapper, workoutId);
     }
 
     @Override

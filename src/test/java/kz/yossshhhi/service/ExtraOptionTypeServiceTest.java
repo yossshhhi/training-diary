@@ -49,8 +49,8 @@ class ExtraOptionTypeServiceTest {
     }
 
     @Test
-    @DisplayName("Get Extra Option Types String")
-    void getExtraOptionTypesToString_ShouldReturnStringRepresentation() {
+    @DisplayName("Get All Extra Option Types")
+    void getAllExtraOptionTypes_ShouldReturnList() {
         ExtraOptionType extraOptionType1 = new ExtraOptionType();
         extraOptionType1.setId(1L);
         extraOptionType1.setName("Option 1");
@@ -63,14 +63,9 @@ class ExtraOptionTypeServiceTest {
 
         when(extraOptionTypeRepository.findAll()).thenReturn(extraOptionTypes);
 
-        String result = extraOptionTypeService.getExtraOptionTypesToString();
+        List<ExtraOptionType> all = extraOptionTypeService.findAll();
 
-        StringBuilder expected = new StringBuilder();
-        for (ExtraOptionType extraOptionType : extraOptionTypes) {
-            expected.append(extraOptionType.getId()).append(". ")
-                    .append(extraOptionType.getName()).append("\n");
-        }
-        assertEquals(expected.toString(), result);
+        assertEquals(extraOptionTypes.size(), all.size());
         verify(extraOptionTypeRepository, times(1)).findAll();
         verifyNoMoreInteractions(extraOptionTypeRepository);
     }

@@ -27,6 +27,7 @@ public class ExtraOption {
      * The identifier of the type of extra option.
      */
     private Long typeId;
+    private String typeName;
 
     /**
      * The value of the extra option.
