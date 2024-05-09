@@ -1,31 +1,27 @@
 package kz.yossshhhi.util;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
+
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Utility class to map ResultSet data to Java objects.
  *
  * @param <T> The type of objects to map ResultSet data to.
  */
-public class ResultSetMapper<T> {
+public class ResultSetMapper<T> implements ResultSetExtractor<List<T>> {
 
     /**
      * Represents the class type of the objects that will be mapped from the ResultSet.
      */
     private final Class<T> clazz;
-
-    /**
-     * Represents a set of field names that should be excluded during the mapping process.
-     */
-//    private final Set<String> excludedFields;
 
     /**
      * Constructs a ResultSetMapper instance for mapping ResultSet data to objects of the specified class.
@@ -34,8 +30,6 @@ public class ResultSetMapper<T> {
      */
     public ResultSetMapper(Class<T> clazz) {
         this.clazz = clazz;
-//        excludedFields = new HashSet<>();
-//        excludedFields.add("extraOptions");
     }
 
     /**
@@ -44,8 +38,10 @@ public class ResultSetMapper<T> {
      * @param resultSet The ResultSet containing the data to be mapped.
      * @return A list of objects of type T.
      * @throws SQLException If an SQL error occurs while processing the ResultSet.
+     * @throws DataAccessException If a data access error occurs.
      */
-    public List<T> mapResultSetToList(ResultSet resultSet) throws SQLException {
+    @Override
+    public List<T> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
         List<T> resultList = new ArrayList<>();
         while (resultSet.next()) {
             T obj = mapResultSetToObject(resultSet);
@@ -66,9 +62,6 @@ public class ResultSetMapper<T> {
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
             for (Field field : clazz.getDeclaredFields()) {
-//                if (excludedFields.contains(field.getName())) {
-//                    continue;
-//                }
                 field.setAccessible(true);
                 String columnName = field.getName();
                 Object value;

@@ -1,36 +1,34 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.WorkoutTypeRepository;
+import kz.yossshhhi.dto.WorkoutTypeDTO;
+import kz.yossshhhi.mapper.WorkoutTypeMapper;
 import kz.yossshhhi.model.WorkoutType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * Service class for managing workout types.
  */
+@Service
+@RequiredArgsConstructor
 public class WorkoutTypeService {
     /**
      * The repository for workout types.
      */
     private final WorkoutTypeRepository workoutTypeRepository;
-
-    /**
-     * Constructs a new WorkoutTypeService with the given WorkoutTypeRepository.
-     *
-     * @param workoutTypeRepository the repository for workout types
-     */
-    public WorkoutTypeService(WorkoutTypeRepository workoutTypeRepository) {
-        this.workoutTypeRepository = workoutTypeRepository;
-    }
+    private final WorkoutTypeMapper mapper;
 
     /**
      * Creates a new workout type.
      *
-     * @param workoutType the workout type to create
-     * @return the created workout type
+     * @param dto the workout type dto to create
      * @throws IllegalArgumentException if a workout type with the same name already exists
      */
-    public WorkoutType create(WorkoutType workoutType) {
+    public WorkoutType create(WorkoutTypeDTO dto) {
+        WorkoutType workoutType = mapper.toEntity(dto);
         workoutTypeRepository.findByName(workoutType.getName()).ifPresent(type -> {
             throw new IllegalArgumentException("Workout type with " + type.getName() + " name already exists");
         });
@@ -63,8 +61,8 @@ public class WorkoutTypeService {
      *
      * @return a list of all workout types
      */
-    public List<WorkoutType> findAll() {
-        return workoutTypeRepository.findAll();
+    public List<WorkoutTypeDTO> findAll() {
+        return workoutTypeRepository.findAll().stream().map(mapper::toDTO).toList();
     }
 
 }

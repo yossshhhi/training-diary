@@ -5,11 +5,12 @@ import kz.yossshhhi.aop.Loggable;
 import kz.yossshhhi.dao.repository.UserRepository;
 import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
-import kz.yossshhhi.exception.InvalidCredentialsException;
 import kz.yossshhhi.exception.RegistrationException;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.Role;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -20,21 +21,14 @@ import java.util.Optional;
 /**
  * Provides security-related services such as user registration and authentication.
  */
+@Service
 @Loggable
+@RequiredArgsConstructor
 public class SecurityService {
     /**
      * The repository for managing user data.
      */
     private final UserRepository userRepository;
-
-    /**
-     * Constructs a new SecurityService with the specified UserRepository and AuditService.
-     *
-     * @param userRepository The repository for managing user data.
-     */
-    public SecurityService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     /**
      * Registers a new user based on the provided authentication request.
@@ -45,8 +39,6 @@ public class SecurityService {
      */
     @Auditable(action = AuditAction.REGISTRATION)
     public User registration(AuthenticationDTO request) {
-        validRequest(request);
-
         userRepository.findByUsername(request.username()).ifPresent(user -> {
             throw new RegistrationException("User with " + user.getUsername() + " username already exists");
         });
@@ -69,8 +61,6 @@ public class SecurityService {
      */
     @Auditable(action = AuditAction.LOG_IN)
     public User authenticate(AuthenticationDTO request) {
-        validRequest(request);
-
         Optional<User> userOptional = userRepository.findByUsername(request.username());
         if (userOptional.isEmpty()) {
             throw new AuthenticationException("User not found");
@@ -83,24 +73,6 @@ public class SecurityService {
         }
 
         return user;
-    }
-
-    private void validRequest(AuthenticationDTO request) {
-        if (request.username().isBlank() || request.password().isBlank()) {
-            throw new InvalidCredentialsException("Username or password is blank");
-        }
-
-        if (request.username().length() < 3 || request.username().length() > 50) {
-            throw new InvalidCredentialsException("Username length must be between 3 and 50");
-        }
-
-        if (!request.username().matches("^[a-zA-Z0-9]+$")) {
-            throw new InvalidCredentialsException("Username must consist of letters and numbers only");
-        }
-
-        if (request.password().length() < 5 || request.password().length() > 50) {
-            throw new InvalidCredentialsException("Password length must be between 5 and 50");
-        }
     }
 
     /**

@@ -6,15 +6,14 @@ import kz.yossshhhi.model.ExtraOption;
 import kz.yossshhhi.model.Workout;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 
 import java.util.List;
 
+/**
+ * Mapper interface for converting between entity objects and Data Transfer Objects (DTOs).
+ */
 @Mapper
 public interface WorkoutMapper {
-//    @Mappings({
-//            @Mapping(target = "extraOptions", source = "entity.extraOptions")
-//    })
     WorkoutDTO toDTO(Workout entity);
 
     List<ExtraOptionDTO> toDTOList(List<ExtraOption> extraOptions);

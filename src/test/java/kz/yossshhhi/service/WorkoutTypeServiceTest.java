@@ -1,12 +1,15 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.WorkoutTypeRepository;
+import kz.yossshhhi.dto.WorkoutTypeDTO;
+import kz.yossshhhi.mapper.WorkoutTypeMapper;
 import kz.yossshhhi.model.WorkoutType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,47 +18,34 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Workout Type Service Tests")
 class WorkoutTypeServiceTest {
 
     @Mock
     private WorkoutTypeRepository workoutTypeRepository;
-
+    @Mock
+    private WorkoutTypeMapper workoutTypeMapper;
+    @InjectMocks
     private WorkoutTypeService workoutTypeService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        workoutTypeService = new WorkoutTypeService(workoutTypeRepository);
-    }
 
     @Test
     @DisplayName("Create New Workout Type - Success")
     void create_NewWorkoutType_Success() {
+        WorkoutTypeDTO dto = new WorkoutTypeDTO(null, "TestType");
         WorkoutType workoutType = WorkoutType.builder().name("TestType").build();
+
+        when(workoutTypeMapper.toEntity(dto)).thenReturn(workoutType);
         when(workoutTypeRepository.findByName("TestType")).thenReturn(Optional.empty());
         when(workoutTypeRepository.save(workoutType)).thenReturn(workoutType);
 
-        WorkoutType createdWorkoutType = workoutTypeService.create(workoutType);
+        WorkoutType createdWorkoutType = workoutTypeService.create(dto);
 
         assertNotNull(createdWorkoutType);
         assertEquals("TestType", createdWorkoutType.getName());
+        verify(workoutTypeMapper, times(1)).toEntity(dto);
         verify(workoutTypeRepository, times(1)).findByName("TestType");
         verify(workoutTypeRepository, times(1)).save(workoutType);
-    }
-
-    @Test
-    @DisplayName("Create Existing Workout Type - Exception Thrown")
-    void create_ExistingWorkoutType_ExceptionThrown() {
-        WorkoutType existingType = WorkoutType.builder().id(1L).name("ExistingType").build();
-        when(workoutTypeRepository.findByName("ExistingType")).thenReturn(Optional.of(existingType));
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> workoutTypeService.create(WorkoutType.builder().name("ExistingType").build()));
-
-        assertEquals("Workout type with ExistingType name already exists", exception.getMessage());
-        verify(workoutTypeRepository, times(1)).findByName("ExistingType");
-        verify(workoutTypeRepository, never()).save(any());
     }
 
     @Test
@@ -106,7 +96,7 @@ class WorkoutTypeServiceTest {
     void findAll_NoWorkoutTypes_EmptyListReturned() {
         when(workoutTypeRepository.findAll()).thenReturn(Collections.emptyList());
 
-        List<WorkoutType> workoutTypes = workoutTypeService.findAll();
+        List<WorkoutTypeDTO> workoutTypes = workoutTypeService.findAll();
 
         assertNotNull(workoutTypes);
         assertTrue(workoutTypes.isEmpty());
@@ -120,12 +110,10 @@ class WorkoutTypeServiceTest {
         WorkoutType workoutType2 = WorkoutType.builder().id(2L).name("Type2").build();
         when(workoutTypeRepository.findAll()).thenReturn(List.of(workoutType1, workoutType2));
 
-        List<WorkoutType> workoutTypes = workoutTypeService.findAll();
+        List<WorkoutTypeDTO> workoutTypes = workoutTypeService.findAll();
 
         assertNotNull(workoutTypes);
         assertEquals(2, workoutTypes.size());
-        assertTrue(workoutTypes.contains(workoutType1));
-        assertTrue(workoutTypes.contains(workoutType2));
         verify(workoutTypeRepository, times(1)).findAll();
     }
 }

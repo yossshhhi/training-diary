@@ -1,77 +1,83 @@
 package kz.yossshhhi.configuration;
 
-import kz.yossshhhi.util.ConnectionPool;
-import kz.yossshhhi.util.DataSource;
-import kz.yossshhhi.util.DatabaseManager;
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
+import kz.yossshhhi.util.YamlPropertySourceFactory;
+import liquibase.integration.spring.SpringLiquibase;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Properties;
-
-import static kz.yossshhhi.util.AppConstants.PROPERTIES_FILE;
+import javax.sql.DataSource;
 
 /**
- * This class represents the configuration for the application, providing access to various controllers and repositories.
+ * Configuration class for setting up database-related beans. This class is responsible for
+ * creating the {@link DataSource}, {@link JdbcTemplate}, and {@link SpringLiquibase} beans
+ * necessary for database operations and migrations. It reads database configurations from
+ * an application.yaml file using a custom YamlPropertySourceFactory.
  */
+@Configuration
+@PropertySource(value = "classpath:application.yaml", factory = YamlPropertySourceFactory.class)
 public class DatabaseConfiguration {
 
+    @Value("${liquibase.change-log}")
+    private String changeLogFile;
+
+    @Value("${datasource.url}")
+    private String databaseUrl;
+
+    @Value("${datasource.username}")
+    private String databaseUser;
+
+    @Value("${datasource.password}")
+    private String databasePassword;
+
+    @Value("${datasource.driver-class-name}")
+    private String databaseDriver;
+
     /**
-     * Retrieves the {@link DataSource} instance from the context map or creates a new one if not present.
+     * Creates and configures a {@link DataSource} bean with properties specified in the application's
+     * configuration file. This bean is essential for providing database connectivity throughout the application.
      *
-     * @param properties The properties containing database connection information.
-     * @return The {@link DataSource} instance.
+     * @return a configured instance of {@link DataSource}.
      */
-    public DataSource dataSource(Properties properties) {
-        return new DataSource(
-                properties.getProperty("database.url"),
-                properties.getProperty("database.user"),
-                properties.getProperty("database.password"),
-                properties.getProperty("database.driver"));
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(databaseDriver);
+        dataSource.setUrl(databaseUrl);
+        dataSource.setUsername(databaseUser);
+        dataSource.setPassword(databasePassword);
+        return dataSource;
     }
 
     /**
-     * Perform database migration using Liquibase.
+     * Configures the Liquibase integration with Spring, allowing for database migrations using
+     * Liquibase change logs. This method sets up the {@link SpringLiquibase} bean with a {@link DataSource}
+     * to manage database schema updates.
      *
-     * @param dataSource The data source for the database.
-     * @throws RuntimeException If an error occurs during database migration.
+     * @param dataSource The {@link DataSource} to use for Liquibase database migrations.
+     * @return the configured {@link SpringLiquibase} instance.
      */
-    public void databaseMigration(DataSource dataSource) {
-        try {
-            Connection connection = DriverManager.getConnection(dataSource.getUrl(), dataSource.getUser(), dataSource.getPassword());
-            Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            Liquibase liquibase = new Liquibase("db/changelog/changelog.xml", new ClassLoaderResourceAccessor(), database);
-            liquibase.update();
-        } catch (SQLException | LiquibaseException e) {
-            throw new RuntimeException(e);
-        }
+    @Bean
+    public SpringLiquibase liquibase(DataSource dataSource) {
+        SpringLiquibase liquibase = new SpringLiquibase();
+        liquibase.setDataSource(dataSource);
+        liquibase.setChangeLog(changeLogFile);
+        return liquibase;
     }
 
     /**
-     * Retrieve or create an instance of the {@link DatabaseManager}.
+     * Creates a {@link JdbcTemplate} bean that simplifies the development of JDBC operations
+     * and helps to avoid common errors. It executes core JDBC workflow, leaving application code
+     * to provide SQL and extract results.
      *
-     * @return The {@link DatabaseManager} instance.
+     * @param dataSource The {@link DataSource} that provides the database connectivity.
+     * @return a fully configured {@link JdbcTemplate} instance.
      */
-    public DatabaseManager databaseManager(Properties properties) {
-        DataSource dataSource = dataSource(properties);
-        databaseMigration(dataSource);
-        return new DatabaseManager(connectionPool(dataSource));
-    }
-
-    /**
-     * Retrieve or create an instance of the {@link  ConnectionPool}.
-     *
-     * @return The {@link ConnectionPool} instance.
-     */
-    public ConnectionPool connectionPool(DataSource dataSource) {
-        return new ConnectionPool(dataSource);
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }

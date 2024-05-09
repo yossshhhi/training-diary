@@ -33,7 +33,7 @@ public interface WorkoutRepository {
      *
      * @param id The unique identifier of the Workout entity to delete.
      */
-    void delete(Long id);
+    boolean delete(Long id);
 
     /**
      * Retrieves all Workout entities stored in the repository.
