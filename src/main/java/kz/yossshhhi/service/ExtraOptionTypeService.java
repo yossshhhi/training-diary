@@ -1,37 +1,35 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.ExtraOptionTypeRepository;
+import kz.yossshhhi.dto.ExtraOptionTypeDTO;
+import kz.yossshhhi.mapper.ExtraOptionTypeMapper;
 import kz.yossshhhi.model.ExtraOptionType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * Service class for managing {@link ExtraOptionType} entities.
  */
+@Service
+@RequiredArgsConstructor
 public class ExtraOptionTypeService {
 
     /**
      * The repository for managing {@link ExtraOptionType} entities.
      */
     private final ExtraOptionTypeRepository extraOptionTypeRepository;
-
-    /**
-     * Constructs an {@link ExtraOptionTypeService} with the specified {@link ExtraOptionTypeRepository}.
-     *
-     * @param extraOptionTypeRepository the repository to be used by the service
-     */
-    public ExtraOptionTypeService(ExtraOptionTypeRepository extraOptionTypeRepository) {
-        this.extraOptionTypeRepository = extraOptionTypeRepository;
-    }
+    private final ExtraOptionTypeMapper mapper;
 
     /**
      * Creates a new extra option type.
      *
-     * @param extraOptionType the extra option type to create
-     * @return the created extra option type
+     * @param dto the extra option type dto to create
      * @throws IllegalArgumentException if an extra option type with the same name already exists
      */
-    public ExtraOptionType create(ExtraOptionType extraOptionType) {
+    public ExtraOptionType create(ExtraOptionTypeDTO dto) {
+        ExtraOptionType extraOptionType = mapper.toEntity(dto);
         extraOptionTypeRepository.findByName(extraOptionType.getName()).ifPresent(option -> {
             throw new IllegalArgumentException("Extra option type with " + option.getName() + " name already exists");
         });
@@ -43,8 +41,8 @@ public class ExtraOptionTypeService {
      *
      * @return A string containing the IDs and names of all extra option types.
      */
-    public List<ExtraOptionType> findAll() {
-        return extraOptionTypeRepository.findAll();
+    public List<ExtraOptionTypeDTO> findAll() {
+        return extraOptionTypeRepository.findAll().stream().map(mapper::toDTO).toList();
     }
 }
 

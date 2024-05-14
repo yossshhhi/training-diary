@@ -1,6 +1,5 @@
 package kz.yossshhhi.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;

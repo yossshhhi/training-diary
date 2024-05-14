@@ -1,12 +1,15 @@
 package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.ExtraOptionTypeRepository;
+import kz.yossshhhi.dto.ExtraOptionTypeDTO;
+import kz.yossshhhi.mapper.ExtraOptionTypeMapper;
 import kz.yossshhhi.model.ExtraOptionType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,33 +19,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Extra Option Service Tests")
 class ExtraOptionTypeServiceTest {
 
     @Mock
     private ExtraOptionTypeRepository extraOptionTypeRepository;
-
+    @Mock
+    private ExtraOptionTypeMapper extraOptionTypeMapper;
+    @InjectMocks
     private ExtraOptionTypeService extraOptionTypeService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        extraOptionTypeService = new ExtraOptionTypeService(extraOptionTypeRepository);
-    }
 
     @Test
     @DisplayName("Create Extra Option Type When Not Exists")
     void create_ExtraOptionTypeDoesNotExist_ShouldCreateExtraOptionType() {
-        ExtraOptionType extraOptionType = new ExtraOptionType();
-        extraOptionType.setName("New Option");
+        ExtraOptionTypeDTO extraOptionTypeDTO = new ExtraOptionTypeDTO(null,"New Option");
+        ExtraOptionType extraOptionType = new ExtraOptionType(null,"New Option");
 
-        when(extraOptionTypeRepository.findByName(extraOptionType.getName())).thenReturn(Optional.empty());
+        when(extraOptionTypeMapper.toEntity(extraOptionTypeDTO)).thenReturn(extraOptionType);
+        when(extraOptionTypeRepository.findByName(extraOptionTypeDTO.name())).thenReturn(Optional.empty());
         when(extraOptionTypeRepository.save(extraOptionType)).thenReturn(extraOptionType);
 
-        ExtraOptionType createdExtraOptionType = extraOptionTypeService.create(extraOptionType);
+        ExtraOptionType createdExtraOptionType = extraOptionTypeService.create(extraOptionTypeDTO);
 
         assertNotNull(createdExtraOptionType);
         assertEquals(extraOptionType, createdExtraOptionType);
+        verify(extraOptionTypeMapper, times(1)).toEntity(extraOptionTypeDTO);
         verify(extraOptionTypeRepository, times(1)).findByName(extraOptionType.getName());
         verify(extraOptionTypeRepository, times(1)).save(extraOptionType);
         verifyNoMoreInteractions(extraOptionTypeRepository);
@@ -63,7 +65,7 @@ class ExtraOptionTypeServiceTest {
 
         when(extraOptionTypeRepository.findAll()).thenReturn(extraOptionTypes);
 
-        List<ExtraOptionType> all = extraOptionTypeService.findAll();
+        List<ExtraOptionTypeDTO> all = extraOptionTypeService.findAll();
 
         assertEquals(extraOptionTypes.size(), all.size());
         verify(extraOptionTypeRepository, times(1)).findAll();

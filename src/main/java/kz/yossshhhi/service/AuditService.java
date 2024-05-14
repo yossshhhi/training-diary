@@ -2,10 +2,14 @@ package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.AuditRepository;
 import kz.yossshhhi.dao.repository.UserRepository;
+import kz.yossshhhi.dto.AuditDTO;
+import kz.yossshhhi.mapper.AuditMapper;
 import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,22 +18,15 @@ import java.util.Optional;
 /**
  * Service class for auditing user actions.
  */
+@Service
+@RequiredArgsConstructor
 public class AuditService {
     /**
      * The repository for accessing audit data.
      */
     private final AuditRepository auditRepository;
     private final UserRepository userRepository;
-
-    /**
-     * Constructs an instance of AuditService.
-     *
-     * @param auditRepository The repository for accessing audit data.
-     */
-    public AuditService(AuditRepository auditRepository, UserRepository userRepository) {
-        this.auditRepository = auditRepository;
-        this.userRepository = userRepository;
-    }
+    private final AuditMapper auditMapper;
 
     /**
      * Records an audit entry for a user action.
@@ -75,8 +72,9 @@ public class AuditService {
      *
      * @return A string representation of all audit entries.
      */
-    public List<Audit> findAll() {
-        return auditRepository.findAll();
+    public List<AuditDTO> findAll() {
+        List<Audit> all = auditRepository.findAll();
+        return all.stream().map(auditMapper::toDTO).toList();
     }
 }
 

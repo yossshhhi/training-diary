@@ -2,14 +2,17 @@ package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.AuditRepository;
 import kz.yossshhhi.dao.repository.UserRepository;
+import kz.yossshhhi.dto.AuditDTO;
+import kz.yossshhhi.mapper.AuditMapper;
 import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.AuditType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Audit Service Tests")
 class AuditServiceTest {
 
@@ -25,13 +29,10 @@ class AuditServiceTest {
     private AuditRepository auditRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private AuditMapper auditMapper;
+    @InjectMocks
     private AuditService auditService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        auditService = new AuditService(auditRepository, userRepository);
-    }
 
     @Test
     @DisplayName("Save method should save audit entry")
@@ -52,7 +53,7 @@ class AuditServiceTest {
 
         when(auditRepository.findAll()).thenReturn(auditList);
 
-        List<Audit> all = auditService.findAll();
+        List<AuditDTO> all = auditService.findAll();
         assertEquals(auditList.size(), all.size());
     }
 }

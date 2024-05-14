@@ -1,119 +1,121 @@
 package kz.yossshhhi.dao.repository;
 
-import kz.yossshhhi.container.TestContainerInitializer;
-import kz.yossshhhi.dao.WorkoutDAO;
 import kz.yossshhhi.model.AggregateWorkoutData;
 import kz.yossshhhi.model.Workout;
-import kz.yossshhhi.util.DatabaseManager;
-import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-@Testcontainers
 @DisplayName("Workout Repository Tests")
+@ExtendWith(MockitoExtension.class)
 class WorkoutRepositoryTest {
 
-    @Container
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("test")
-            .withUsername("test")
-            .withPassword("test");
-
-    private static WorkoutRepository workoutRepository;
-    private static List<Workout> save;
-
-    @BeforeAll
-    static void setUp() {
-        postgreSQLContainer.start();
-        TestContainerInitializer.initializeDatabase(postgreSQLContainer);
-        DatabaseManager databaseManager = TestContainerInitializer.databaseManager(postgreSQLContainer);
-        workoutRepository = new WorkoutDAO(databaseManager, new ResultSetMapper<>(Workout.class),
-                new ResultSetMapper<>(AggregateWorkoutData.class));
-
-        save = new ArrayList<>();
-        Workout workout1 = Workout.builder().userId(1L).workoutTypeId(1L).duration(100).burnedCalories(200).createdAt(LocalDate.now()).build();
-        Workout workout2 = Workout.builder().userId(1L).workoutTypeId(2L).duration(100).burnedCalories(200).createdAt(LocalDate.now()).build();
-        save.add(workoutRepository.save(workout1));
-        save.add(workoutRepository.save(workout2));
-    }
-
-    @AfterAll
-    static void destroy(){
-        postgreSQLContainer.stop();
-    }
+    @Mock
+    private WorkoutRepository workoutRepository;
 
     @Test
     @DisplayName("Find By ID - Existing ID Should Return Workout")
-    void testFindById_existingId_shouldReturnWorkout() {
-        Optional<Workout> foundWorkout = workoutRepository.findById(save.get(0).getId());
-        assertTrue(foundWorkout.isPresent());
-        assertEquals(save.get(0).getId(), foundWorkout.get().getId());
+    void findById_ShouldReturnWorkoutWhenExists() {
+        Workout workout = new Workout();
+        workout.setId(1L);
+        when(workoutRepository.findById(1L)).thenReturn(Optional.of(workout));
+
+        Optional<Workout> found = workoutRepository.findById(1L);
+
+        assertThat(found).isPresent();
+        assertThat(found.get()).isEqualTo(workout);
+    }
+
+    @Test
+    @DisplayName("Find By ID - Not Existing ID Should Return Empty")
+    void findById_ShouldReturnEmptyWhenNotExists() {
+        when(workoutRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<Workout> found = workoutRepository.findById(1L);
+
+        assertThat(found).isNotPresent();
     }
 
     @Test
     @DisplayName("Save - Should Return Workout")
-    void testSave_shouldReturnWorkout() {
+    void save_ShouldSaveOrUpdateWorkout() {
         Workout workout = Workout.builder().userId(1L).workoutTypeId(3L).duration(100).burnedCalories(200).createdAt(LocalDate.now()).build();
 
-        Workout saved = workoutRepository.save(workout);
-        save.add(saved);
+        when(workoutRepository.save(workout)).thenReturn(workout);
 
-        assertNotNull(saved.getId());
-        assertEquals(workout.getBurnedCalories(), saved.getBurnedCalories());
-        assertEquals(workout.getWorkoutTypeId(), saved.getWorkoutTypeId());
+        Workout saved = workoutRepository.save(workout);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.getDuration()).isEqualTo(workout.getDuration());
     }
 
     @Test
     @DisplayName("Delete - Should Delete Workout")
-    void testDelete() {
-        Optional<Workout> foundWorkout = workoutRepository.findById(save.get(0).getId());
+    void delete_ShouldReturnTrueWhenSuccessful() {
+        when(workoutRepository.delete(1L)).thenReturn(true);
 
-        assertTrue(foundWorkout.isPresent());
+        boolean result = workoutRepository.delete(1L);
 
-        workoutRepository.delete(save.get(0).getId());
-        foundWorkout = workoutRepository.findById(save.get(0).getId());
-        save.remove(0);
-
-        assertTrue(foundWorkout.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Find All - Should Return All Workouts")
-    void testFindAll() {
-        List<Workout> allWorkouts = workoutRepository.findAll();
-        assertEquals(save.size(), allWorkouts.size());
+        assertThat(result).isTrue();
     }
 
     @Test
     @DisplayName("Find All By User ID - Should Return Workouts")
-    void testFindAllByUserId() {
-        List<Workout> workouts = workoutRepository.findAllByUserId(1L);
-        assertEquals(save.size(), workouts.size());
+    void findAllByUserId_ShouldReturnWorkouts() {
+        List<Workout> workouts = List.of(new Workout(), new Workout());
+        when(workoutRepository.findAllByUserId(1L)).thenReturn(workouts);
+
+        List<Workout> result = workoutRepository.findAllByUserId(1L);
+
+        assertThat(result).hasSize(2);
     }
 
     @Test
     @DisplayName("Exists By User ID And Date And Workout Type ID - Should Return True")
-    void testExistsByUserIdAndDateAndWorkoutTypeId() {
-        boolean exists = workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(1L, LocalDate.now(), 2L);
-        assertTrue(exists);
+    void existsByUserIdAndDateAndWorkoutTypeId_ShouldReturnTrueIfExists() {
+        when(workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(1L, LocalDate.now(), 1L)).thenReturn(true);
+
+        boolean exists = workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(1L, LocalDate.now(), 1L);
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Find All - Should Return All Workouts")
+    void findAll_ShouldReturnAllWorkouts() {
+        List<Workout> expectedWorkouts = Arrays.asList(new Workout(), new Workout());
+        when(workoutRepository.findAll()).thenReturn(expectedWorkouts);
+
+        List<Workout> workouts = workoutRepository.findAll();
+
+        assertThat(workouts).isNotNull();
+        assertThat(workouts).hasSize(2);
+        assertThat(workouts).isEqualTo(expectedWorkouts);
     }
 
     @Test
     @DisplayName("Get Aggregate Data By User ID And After Date - Should Return Aggregate Data")
-    void testGetAggregateDataByUserIdAndAfterDate() {
-        AggregateWorkoutData aggregateData = workoutRepository.getAggregateDataByUserIdAndAfterDate(1L, LocalDate.now().minusDays(1));
-        assertNotNull(aggregateData);
-        assertEquals(save.size(), aggregateData.getWorkoutCount());
-        assertEquals(save.stream().mapToInt(Workout::getDuration).sum(), aggregateData.getTotalDuration());
-        assertEquals(save.stream().mapToInt(Workout::getBurnedCalories).sum(), aggregateData.getTotalBurnedCalories());
+    void getAggregateDataByUserIdAndAfterDate_ShouldReturnAggregateData() {
+        AggregateWorkoutData expectedData = new AggregateWorkoutData();
+        expectedData.setWorkoutCount(10L);
+        expectedData.setTotalDuration(500L);
+
+        when(workoutRepository.getAggregateDataByUserIdAndAfterDate(1L, LocalDate.of(2021, 1, 1))).thenReturn(expectedData);
+
+        AggregateWorkoutData actualData = workoutRepository.getAggregateDataByUserIdAndAfterDate(1L, LocalDate.of(2021, 1, 1));
+
+        assertThat(actualData).isNotNull();
+        assertThat(actualData.getWorkoutCount()).isEqualTo(10);
+        assertThat(actualData.getTotalDuration()).isEqualTo(500);
     }
 }

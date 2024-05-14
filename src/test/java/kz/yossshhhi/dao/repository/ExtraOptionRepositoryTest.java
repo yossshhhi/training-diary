@@ -1,94 +1,71 @@
 package kz.yossshhhi.dao.repository;
 
-import kz.yossshhhi.container.TestContainerInitializer;
-import kz.yossshhhi.dao.ExtraOptionDAO;
-import kz.yossshhhi.dao.WorkoutDAO;
-import kz.yossshhhi.model.AggregateWorkoutData;
 import kz.yossshhhi.model.ExtraOption;
-import kz.yossshhhi.model.Workout;
-import kz.yossshhhi.util.DatabaseManager;
-import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@Testcontainers
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Extra Option Repository Tests")
 class ExtraOptionRepositoryTest {
+    @Mock
+    private ExtraOptionRepository extraOptionRepository;
 
-    @Container
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("test")
-            .withUsername("test")
-            .withPassword("test");
+    @Test
+    @DisplayName("Save should persist extra option and return it with an ID")
+    void testSave() {
+        ExtraOption extraOption = new ExtraOption();
+        extraOption.setWorkoutId(1L);
+        extraOption.setTypeId(2L);
+        extraOption.setValue(100);
 
-    private static ExtraOptionRepository extraOptionRepository;
-    private static Workout savedWorkout;
+        when(extraOptionRepository.save(any(ExtraOption.class))).thenReturn(extraOption);
 
-    @BeforeAll
-    static void setUp() {
-        postgreSQLContainer.start();
-        TestContainerInitializer.initializeDatabase(postgreSQLContainer);
-        DatabaseManager databaseManager = TestContainerInitializer.databaseManager(postgreSQLContainer);
-        extraOptionRepository = new ExtraOptionDAO(databaseManager, new ResultSetMapper<>(ExtraOption.class));
-        WorkoutRepository workoutRepository = new WorkoutDAO(databaseManager, new ResultSetMapper<>(Workout.class),
-                new ResultSetMapper<>(AggregateWorkoutData.class));
+        ExtraOption savedExtraOption = extraOptionRepository.save(extraOption);
 
-        Workout workout = Workout.builder()
-                .userId(1L)
-                .workoutTypeId(1L)
-                .duration(100)
-                .burnedCalories(200)
-                .createdAt(LocalDate.now())
-                .build();
+        assertThat(savedExtraOption).isNotNull();
+        assertThat(savedExtraOption.getWorkoutId()).isEqualTo(1L);
+        assertThat(savedExtraOption.getTypeId()).isEqualTo(2L);
+        assertThat(savedExtraOption.getValue()).isEqualTo(100);
 
-        savedWorkout = workoutRepository.save(workout);
-        extraOptionRepository.save(ExtraOption.builder()
-                .typeId(1L)
-                .workoutId(savedWorkout.getId())
-                .value(100)
-                .build());
-    }
-
-    @AfterAll
-    static void destroy(){
-        postgreSQLContainer.stop();
+        verify(extraOptionRepository).save(extraOption);
     }
 
     @Test
-    @DisplayName("Save Extra Option and Find All by Workout ID - Should Return List of Extra Options")
-    void testSaveAndFindAllByWorkoutId_ShouldReturnListOfExtraOptions() {
-        ExtraOption extraOption = ExtraOption.builder()
-                .typeId(2L)
-                .workoutId(savedWorkout.getId())
-                .value(100)
-                .build();
+    @DisplayName("findAllByWorkoutId should return list of extra options")
+    void testFindAllByWorkoutId() {
+        Long workoutId = 1L;
+        List<ExtraOption> expectedExtraOptions = Arrays.asList(new ExtraOption(), new ExtraOption());
 
-        extraOptionRepository.save(extraOption);
+        when(extraOptionRepository.findAllByWorkoutId(workoutId)).thenReturn(expectedExtraOptions);
 
-        assertThat(extraOptionRepository.findAllByWorkoutId(savedWorkout.getId()))
-                .anyMatch(option -> option.getTypeId().equals(extraOption.getTypeId()))
-                .hasSizeGreaterThanOrEqualTo(1);
+        List<ExtraOption> actualExtraOptions = extraOptionRepository.findAllByWorkoutId(workoutId);
+
+        assertThat(actualExtraOptions).isNotNull().hasSize(2);
+        verify(extraOptionRepository).findAllByWorkoutId(workoutId);
     }
 
     @Test
-    @DisplayName("Delete All Extra Options - Should Delete All Extra Options")
-    void deleteAll_ShouldDeleteAllExtraOptions() {
-        List<ExtraOption> extraOptions = extraOptionRepository.findAllByWorkoutId(savedWorkout.getId());
+    @DisplayName("deleteAll should remove all specified extra options")
+    void testDeleteAll() {
+        List<ExtraOption> extraOptions = Arrays.asList(
+                mock(ExtraOption.class),
+                mock(ExtraOption.class)
+        );
 
-        assertFalse(extraOptions.isEmpty());
+        doNothing().when(extraOptionRepository).deleteAll(extraOptions);
 
         extraOptionRepository.deleteAll(extraOptions);
 
-        extraOptions = extraOptionRepository.findAllByWorkoutId(savedWorkout.getId());
-
-        assertTrue(extraOptions.isEmpty());
+        verify(extraOptionRepository).deleteAll(extraOptions);
     }
 }

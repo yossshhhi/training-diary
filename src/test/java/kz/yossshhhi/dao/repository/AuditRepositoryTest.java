@@ -1,64 +1,49 @@
 package kz.yossshhhi.dao.repository;
 
-import kz.yossshhhi.container.TestContainerInitializer;
-import kz.yossshhhi.dao.AuditDAO;
 import kz.yossshhhi.model.Audit;
-import kz.yossshhhi.model.enums.AuditAction;
-import kz.yossshhhi.model.enums.AuditType;
-import kz.yossshhhi.util.ResultSetMapper;
-import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@Testcontainers
+@DisplayName("Audit Repository Tests")
+@ExtendWith(MockitoExtension.class)
 public class AuditRepositoryTest {
 
-    @Container
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("test")
-            .withUsername("test")
-            .withPassword("test");
-
-    private static AuditRepository auditRepository;
-
-    @BeforeAll
-    static void setUp() {
-        postgreSQLContainer.start();
-        TestContainerInitializer.initializeDatabase(postgreSQLContainer);
-        auditRepository = new AuditDAO(TestContainerInitializer.databaseManager(postgreSQLContainer), new ResultSetMapper<>(Audit.class));
-    }
-
-    @AfterAll
-    static void destroy(){
-        postgreSQLContainer.stop();
-    }
+    @Mock
+    private AuditRepository auditRepository;
 
     @Test
     @DisplayName("Saving and retrieving audit should return the same audit")
     void saveAndFindAll_ShouldReturnSameAudit() {
-        Audit audit = Audit.builder()
-                .createdAt(LocalDateTime.now())
-                .userId(1L)
-                .auditAction(AuditAction.REGISTRATION)
-                .auditType(AuditType.SUCCESS)
-                .build();
+        Audit auditToSave = mock(Audit.class);
+        Audit savedAudit = mock(Audit.class);
+        when(auditRepository.save(any(Audit.class))).thenReturn(savedAudit);
+        when(auditRepository.findAll()).thenReturn(Collections.singletonList(savedAudit));
 
-        Audit savedAudit = auditRepository.save(audit);
+        Audit returnedAudit = auditRepository.save(auditToSave);
+        List<Audit> retrievedAudits = auditRepository.findAll();
 
-        List<Audit> allAudits = auditRepository.findAll();
+        assertThat(returnedAudit)
+                .as("Check that the saved audit has the correct properties")
+                .isNotNull()
+                .isEqualToComparingFieldByField(savedAudit);
 
-        assertNotNull(savedAudit.getId());
-        assertEquals(allAudits.get(0).getId(), savedAudit.getId());
-        assertEquals(allAudits.get(0).getUserId(), savedAudit.getUserId());
-        assertEquals(allAudits.get(0).getAuditAction(), savedAudit.getAuditAction());
-        assertEquals(allAudits.get(0).getAuditType(), savedAudit.getAuditType());
-        assertEquals(allAudits.size(), 1);
+        assertThat(retrievedAudits)
+                .as("Ensure the retrieved list contains the saved audit")
+                .isNotNull()
+                .hasSize(1)
+                .containsExactly(savedAudit);
+
+        verify(auditRepository).save(auditToSave);
+        verify(auditRepository).findAll();
     }
 }

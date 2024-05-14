@@ -23,6 +23,12 @@ ext {
     jwtVersion = '0.12.5'
     aspectjVersion = '1.9.22'
     assertjVersion = '3.25.3'
+    springframeworkVersion = '6.1.6'
+    validationVersion = '3.0.2'
+    swaggerVersion = '3.0.0'
+    springdocVersion = '2.5.0'
+    jsonpathVersion = '2.9.0'
+    hibernateVersion = '8.0.0.Final'
 }
 
 repositories {
@@ -43,9 +49,18 @@ dependencies {
     implementation "io.jsonwebtoken:jjwt-api:$jwtVersion"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:$jwtVersion"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
     implementation "org.aspectj:aspectjrt:$aspectjVersion"
     runtimeOnly "org.aspectj:aspectjweaver:$aspectjVersion"
+    implementation "org.springframework:spring-context:$springframeworkVersion"
+    implementation "org.springframework:spring-web:$springframeworkVersion"
+    implementation "org.springframework:spring-webmvc:$springframeworkVersion"
+    implementation "org.springframework:spring-jdbc:$springframeworkVersion"
+    testImplementation "org.springframework:spring-test:$springframeworkVersion"
+    implementation "jakarta.validation:jakarta.validation-api:$validationVersion"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion"
+    implementation "com.jayway.jsonpath:json-path:$jsonpathVersion"
+    implementation "org.hibernate.validator:hibernate-validator:$hibernateVersion"
 
     testImplementation "org.testcontainers:junit-jupiter:$testcontainersVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"
@@ -56,6 +71,18 @@ dependencies {
     testImplementation platform("org.junit:junit-bom:$junitVersion")
     testImplementation "org.junit.jupiter:junit-jupiter"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'jakarta.servlet' && details.requested.name == 'jakarta.servlet-api') {
+            if (gradle.startParameter.taskNames.any { it.contains("test") }) {
+                details.useVersion '6.0.0'
+            } else {
+                details.useVersion '5.0.0'
+            }
+        }
+    }
 }
 
 tasks.test {

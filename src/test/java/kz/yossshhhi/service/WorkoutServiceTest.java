@@ -2,21 +2,29 @@ package kz.yossshhhi.service;
 
 import kz.yossshhhi.dao.repository.ExtraOptionRepository;
 import kz.yossshhhi.dao.repository.WorkoutRepository;
+import kz.yossshhhi.dto.AggregateWorkoutDataDTO;
+import kz.yossshhhi.dto.WorkoutDTO;
+import kz.yossshhhi.mapper.AggregateWorkoutDataMapper;
+import kz.yossshhhi.mapper.WorkoutMapper;
 import kz.yossshhhi.model.AggregateWorkoutData;
 import kz.yossshhhi.model.Workout;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Workout Service Tests")
 class WorkoutServiceTest {
 
@@ -24,29 +32,25 @@ class WorkoutServiceTest {
     private WorkoutRepository workoutRepository;
     @Mock
     private ExtraOptionRepository extraOptionRepository;
+    @Mock
+    private WorkoutMapper workoutMapper;
+    @Mock
+    private AggregateWorkoutDataMapper aggregateWorkoutDataMapper;
 
+    @InjectMocks
     private WorkoutService workoutService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        workoutService = new WorkoutService(workoutRepository, extraOptionRepository);
-    }
 
     @Test
     @DisplayName("Creating Workout When Not Exists Should Save and Return Workout")
     void create_WorkoutDoesNotExist_ShouldSaveAndReturnWorkout() {
-        Workout newWorkout = Workout.builder()
-                .userId(1L)
-                .createdAt(LocalDate.now())
-                .workoutTypeId(1L)
-                .extraOptions(new ArrayList<>())
-                .build();
+        WorkoutDTO workoutDTO = mock(WorkoutDTO.class);
+        Workout newWorkout = mock(Workout.class);
 
+        when(workoutMapper.toEntity(workoutDTO)).thenReturn(newWorkout);
         when(workoutRepository.existsByUserIdAndDateAndWorkoutTypeId(newWorkout.getUserId(), newWorkout.getCreatedAt(), newWorkout.getWorkoutTypeId())).thenReturn(false);
         when(workoutRepository.save(newWorkout)).thenReturn(newWorkout);
 
-        Workout createdWorkout = workoutService.create(newWorkout);
+        Workout createdWorkout = workoutService.create(workoutDTO, 1L);
 
         assertNotNull(createdWorkout);
         assertEquals(newWorkout, createdWorkout);
@@ -67,9 +71,9 @@ class WorkoutServiceTest {
 
         when(workoutRepository.findAllByUserId(userId)).thenReturn(expectedWorkouts);
 
-        List<Workout> result = workoutService.findAllByUserId(userId);
+        List<WorkoutDTO> result = workoutService.findAllByUserId(userId);
 
-        assertEquals(expectedWorkouts, result);
+        assertEquals(expectedWorkouts.size(), result.size());
         verify(workoutRepository, times(1)).findAllByUserId(userId);
         verifyNoMoreInteractions(workoutRepository);
     }
@@ -84,10 +88,9 @@ class WorkoutServiceTest {
         );
         when(workoutRepository.findAll()).thenReturn(expectedWorkouts);
 
-        List<Workout> actualWorkouts = workoutService.findAll();
+        List<WorkoutDTO> actualWorkouts = workoutService.findAll();
 
         assertEquals(expectedWorkouts.size(), actualWorkouts.size());
-        assertEquals(expectedWorkouts, actualWorkouts);
         verify(workoutRepository, times(1)).findAll();
     }
 
@@ -111,17 +114,16 @@ class WorkoutServiceTest {
     void getStatistics() {
         int days = 7;
         Long userId = 1L;
-        AggregateWorkoutData data = new AggregateWorkoutData();
-        data.setWorkoutCount(1L);
-        data.setTotalDuration(120L);
-        data.setTotalBurnedCalories(500L);
+        AggregateWorkoutData data = mock(AggregateWorkoutData.class);
+        AggregateWorkoutDataDTO dto = mock(AggregateWorkoutDataDTO.class);
 
         when(workoutRepository.getAggregateDataByUserIdAndAfterDate(userId, LocalDate.now().minusDays(days)))
                 .thenReturn(data);
+        when(aggregateWorkoutDataMapper.toDTO(data)).thenReturn(dto);
 
-        AggregateWorkoutData statistics = workoutService.getStatistics(userId, days);
+        AggregateWorkoutDataDTO statistics = workoutService.getStatistics(userId, days);
 
-        assertEquals(data.getWorkoutCount(), statistics.getWorkoutCount());
+        assertEquals(data.getWorkoutCount(), statistics.workoutCount());
         verify(workoutRepository, times(1)).getAggregateDataByUserIdAndAfterDate(userId, LocalDate.now().minusDays(days));
         verifyNoMoreInteractions(workoutRepository);
     }
