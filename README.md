@@ -6,6 +6,7 @@ A workout diary app that allows users to record their workouts, review them, and
 2. **[Homework №2](https://github.com/yossshhhi/training-diary/pull/2)**
 3. **[Homework №3](https://github.com/yossshhhi/training-diary/pull/3)**
 4. **[Homework №4](https://github.com/yossshhhi/training-diary/pull/4)**
+5. **[Homework №5](https://github.com/yossshhhi/training-diary/pull/5)**
 
 ## Install
 
