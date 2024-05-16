@@ -1,2 +1,3 @@
 rootProject.name = "training-diary"
-
+include 'starter-logging-aop'
+include 'starter-audit-aop'

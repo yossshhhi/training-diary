@@ -4,17 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.model.User;
 import kz.yossshhhi.model.enums.Role;
+import kz.yossshhhi.security.JwtTokenFilter;
 import kz.yossshhhi.security.JwtTokenProvider;
 import kz.yossshhhi.service.SecurityService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,21 +24,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(value = SecurityController.class, excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)})
 @DisplayName("Security Controller tests")
 class SecurityControllerTest {
+    @Autowired
     private MockMvc mockMvc;
-    @Mock
+    @MockBean
     private SecurityService securityService;
-    @Mock
+    @MockBean
     private JwtTokenProvider jwtTokenProvider;
-    @InjectMocks
-    private SecurityController securityController;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(securityController).build();
-    }
 
     @Test
     @DisplayName("POST /register - Success")

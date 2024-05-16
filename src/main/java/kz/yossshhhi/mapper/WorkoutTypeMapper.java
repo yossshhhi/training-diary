@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 /**
  * Mapper for converting between {@link WorkoutType} entity and {@link WorkoutTypeDTO} data transfer object.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface WorkoutTypeMapper {
 
     WorkoutTypeDTO toDTO(WorkoutType entity);

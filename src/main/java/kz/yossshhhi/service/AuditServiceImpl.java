@@ -6,8 +6,9 @@ import kz.yossshhhi.dto.AuditDTO;
 import kz.yossshhhi.mapper.AuditMapper;
 import kz.yossshhhi.model.Audit;
 import kz.yossshhhi.model.User;
-import kz.yossshhhi.model.enums.AuditAction;
-import kz.yossshhhi.model.enums.AuditType;
+import kz.yossshhhi.starter.audit.aop.model.AuditAction;
+import kz.yossshhhi.starter.audit.aop.model.AuditType;
+import kz.yossshhhi.starter.audit.aop.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class AuditService {
+public class AuditServiceImpl implements AuditService {
     /**
      * The repository for accessing audit data.
      */
@@ -35,6 +36,7 @@ public class AuditService {
      * @param action The action performed by the user.
      * @param type   The type of action being audited.
      */
+    @Override
     public void audit(Long userId, AuditAction action, AuditType type) {
         Audit audit = Audit.builder()
                 .userId(userId)
@@ -45,6 +47,7 @@ public class AuditService {
         save(audit);
     }
 
+    @Override
     public void audit(String username, AuditAction action, AuditType type) {
         Optional<User> optional = userRepository.findByUsername(username);
         User user = optional.orElseGet(() -> User.builder().id(1L).build());

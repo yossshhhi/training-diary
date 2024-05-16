@@ -1,6 +1,7 @@
 package kz.yossshhhi.model;
 
 import kz.yossshhhi.model.enums.Role;
+import kz.yossshhhi.starter.audit.aop.model.Identifiable;
 import lombok.*;
 
 /**
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements Identifiable {
     /**
      * The unique identifier of the user.
      */

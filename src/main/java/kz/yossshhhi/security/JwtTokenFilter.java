@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kz.yossshhhi.dto.ExceptionResponse;
 import kz.yossshhhi.model.enums.Role;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -37,22 +38,29 @@ public class JwtTokenFilter extends OncePerRequestFilter {
      * @throws IOException If an I/O error occurs during request processing.
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = tokenProvider.resolveToken(request);
-        if (token != null && tokenProvider.validateToken(token)) {
-            Role role = tokenProvider.getUserRole(token);
-            String username = tokenProvider.getUsername(token);
-            String userId = tokenProvider.getUserId(token);
-            String path = request.getRequestURI();
-            request.setAttribute("username", username);
-            request.setAttribute("user_id", userId);
-
-            if (isAdminEndpoint(path) && role.name().equals("USER")) {
-                unauthorizedAccess(response, "Access denied. Insufficient privileges.");
-            }
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
             filterChain.doFilter(request, response);
         } else {
-            unauthorizedAccess(response, "Unauthorized access. Please provide a valid token.");
+            String token = tokenProvider.resolveToken(request);
+            if (token != null && tokenProvider.validateToken(token)) {
+                Role role = tokenProvider.getUserRole(token);
+                String username = tokenProvider.getUsername(token);
+                String userId = tokenProvider.getUserId(token);
+                String path = request.getRequestURI();
+                request.setAttribute("username", username);
+                request.setAttribute("user_id", userId);
+
+                if (isAdminEndpoint(path) && role.name().equals("USER")) {
+                    unauthorizedAccess(response, "Access denied. Insufficient privileges.");
+                }
+                filterChain.doFilter(request, response);
+            } else {
+                unauthorizedAccess(response, "Unauthorized access. Please provide a valid token.");
+            }
         }
     }
 
@@ -63,7 +71,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
      * @return true if the path is for an admin endpoint, false otherwise.
      */
     private boolean isAdminEndpoint(String path) {
-        return path.startsWith("/training-diary/admin/");
+        return path.startsWith("/admin/");
     }
 
     /**

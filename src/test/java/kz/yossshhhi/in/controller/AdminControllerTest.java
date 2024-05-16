@@ -5,19 +5,20 @@ import kz.yossshhhi.dto.ExtraOptionTypeDTO;
 import kz.yossshhhi.dto.WorkoutTypeDTO;
 import kz.yossshhhi.model.ExtraOptionType;
 import kz.yossshhhi.model.WorkoutType;
-import kz.yossshhhi.service.AuditService;
+import kz.yossshhhi.security.JwtTokenFilter;
+import kz.yossshhhi.service.AuditServiceImpl;
 import kz.yossshhhi.service.ExtraOptionTypeService;
 import kz.yossshhhi.service.WorkoutService;
 import kz.yossshhhi.service.WorkoutTypeService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,26 +31,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(value = AdminController.class, excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)})
 @DisplayName("Admin Controller tests")
 class AdminControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
-    @Mock
+    @MockBean
     private WorkoutService workoutService;
-    @Mock
-    private AuditService auditService;
-    @Mock
+    @MockBean
+    private AuditServiceImpl auditServiceImpl;
+    @MockBean
     private ExtraOptionTypeService extraOptionTypeService;
-    @Mock
+    @MockBean
     private WorkoutTypeService workoutTypeService;
-    @InjectMocks
-    private AdminController adminController;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(adminController).build();
-    }
 
     @Test
     @DisplayName("GET /admin/workouts - Success")
@@ -64,7 +60,7 @@ class AdminControllerTest {
     @DisplayName("GET /admin/audits - Success")
     void shouldFetchAllAudits() throws Exception {
         List<AuditDTO> auditList = Arrays.asList(mock(AuditDTO.class), mock(AuditDTO.class));
-        when(auditService.findAll()).thenReturn(auditList);
+        when(auditServiceImpl.findAll()).thenReturn(auditList);
 
         mockMvc.perform(get("/admin/audits")
                         .contentType(MediaType.APPLICATION_JSON))

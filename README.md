@@ -2,11 +2,6 @@
 
 A workout diary app that allows users to record their workouts, review them, and analyze their workout progress
 
-1. **[Homework №1](https://github.com/yossshhhi/training-diary/pull/1)**
-2. **[Homework №2](https://github.com/yossshhhi/training-diary/pull/2)**
-3. **[Homework №3](https://github.com/yossshhhi/training-diary/pull/3)**
-4. **[Homework №4](https://github.com/yossshhhi/training-diary/pull/4)**
-
 ## Install
 
 To install and run this project, follow these steps:
@@ -24,9 +19,9 @@ To install and run this project, follow these steps:
    ```
 3. **Run the `Application`:**
    - Open your IDE or text editor
-   - Find the build.gradle file in the project structure
-   - Ensure Gretty plugin is included in the plugins section of the `build.gradle` file
-   - Run the `./gradlew appRun` command in the terminal or command prompt
+   - Find the `build.gradle` file in the project structure
+   - Ensure the Spring Boot plugin is included in the plugins section of the `build.gradle` file.
+   - Run the `./gradlew bootRun` command in the terminal or command prompt
    - Once the server is started, you can interact with the application by navigating to http://localhost:8080 in your web browser.
 
 
@@ -104,6 +99,9 @@ To install and run this project, follow these steps:
 - `GET /user/workouts`: Retrieves all workouts recorded by a specific user.
 
 - `GET /user/workout-types`: Retrieves all workout types defined in the system.
+
+# Swagger Documentation
+For detailed API documentation, visit the Swagger UI at [Swagger](http://localhost:8080/swagger-ui.html).
 
 ## Contact with me
 

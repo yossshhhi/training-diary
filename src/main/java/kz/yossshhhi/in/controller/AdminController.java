@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kz.yossshhhi.dto.*;
-import kz.yossshhhi.service.AuditService;
+import kz.yossshhhi.service.AuditServiceImpl;
 import kz.yossshhhi.service.ExtraOptionTypeService;
 import kz.yossshhhi.service.WorkoutService;
 import kz.yossshhhi.service.WorkoutTypeService;
@@ -27,7 +27,7 @@ public class AdminController {
     private final WorkoutService workoutService;
     private final WorkoutTypeService workoutTypeService;
     private final ExtraOptionTypeService extraOptionTypeService;
-    private final AuditService auditService;
+    private final AuditServiceImpl auditServiceImpl;
 
     /**
      * Retrieves all existing workout records.
@@ -48,7 +48,7 @@ public class AdminController {
     @GetMapping("/audits")
     @Operation(summary = "Show all audits")
     public ResponseEntity<List<AuditDTO>> showAudits() {
-        return ResponseEntity.ok(auditService.findAll());
+        return ResponseEntity.ok(auditServiceImpl.findAll());
     }
 
     /**

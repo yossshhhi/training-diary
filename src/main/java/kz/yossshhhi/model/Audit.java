@@ -1,7 +1,7 @@
 package kz.yossshhhi.model;
 
-import kz.yossshhhi.model.enums.AuditAction;
-import kz.yossshhhi.model.enums.AuditType;
+import kz.yossshhhi.starter.audit.aop.model.AuditAction;
+import kz.yossshhhi.starter.audit.aop.model.AuditType;
 import lombok.*;
 
 import java.time.LocalDateTime;
