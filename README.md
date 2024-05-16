@@ -72,8 +72,8 @@ To install and run this project, follow these steps:
 - `PATCH /user/workouts/edit`: Edits the details of an existing workout.
   ```json
   {
-    "id": "workout ID"
-    // updated workout details
+    "id": "workout ID",
+    "details": "updated"
   }
   ```
 - `GET /user/statistic`: Retrieves workout statistics for a user over a specified number of days.

@@ -1,0 +1,45 @@
+plugins {
+	id 'java-library'
+	id 'org.springframework.boot' version '3.2.5'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'maven-publish'
+}
+
+group = 'kz.yossshhhi'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			versionMapping {
+				usage('java-api') {
+					fromResolutionResult()
+				}
+				usage('java-runtime') {
+					fromResolutionResult()
+				}
+			}
+		}
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
