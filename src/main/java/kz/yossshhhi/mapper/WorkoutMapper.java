@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Mapper interface for converting between entity objects and Data Transfer Objects (DTOs).
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface WorkoutMapper {
     WorkoutDTO toDTO(Workout entity);
 

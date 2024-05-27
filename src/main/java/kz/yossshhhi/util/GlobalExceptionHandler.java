@@ -1,5 +1,6 @@
 package kz.yossshhhi.util;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import kz.yossshhhi.dto.ExceptionResponse;
 import kz.yossshhhi.exception.AuthenticationException;
 import kz.yossshhhi.exception.RegistrationException;
@@ -44,6 +45,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ExceptionResponse> handleDatabaseExceptions(DataAccessException ex) {
         return ResponseEntity.internalServerError().body(new ExceptionResponse("Database error: " + ex.getMessage()));
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ExceptionResponse> handleExpiredJwtExceptions(ExpiredJwtException ex) {
+        return ResponseEntity.badRequest().body(new ExceptionResponse("Expired JWT error: " + ex.getMessage()));
     }
 
     /**

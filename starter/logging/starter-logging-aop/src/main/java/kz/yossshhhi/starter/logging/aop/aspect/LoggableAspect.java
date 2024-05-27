@@ -1,4 +1,4 @@
-package kz.yossshhhi.aop;
+package kz.yossshhhi.starter.logging.aop.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * Aspect for logging method execution.
  * This aspect provides around advice that logs the beginning and completion of any method
- * annotated with {@link kz.yossshhhi.aop.Loggable}. It logs the method signature and the execution time.
+ * annotated with {@link kz.yossshhhi.starter.logging.aop.annotation.Loggable}. It logs the method signature and the execution time.
  * This can be particularly useful for performance monitoring and debugging.
  */
 @Aspect
@@ -19,10 +19,10 @@ import org.springframework.stereotype.Component;
 public class LoggableAspect {
 
     /**
-     * Pointcut that matches all methods annotated with {@link kz.yossshhhi.aop.Loggable}.
+     * Pointcut that matches all methods annotated with {@link kz.yossshhhi.starter.logging.aop.annotation.Loggable}.
      * This pointcut is used to identify methods that should be intercepted by the logging advice.
      */
-    @Pointcut("within(@kz.yossshhhi.aop.Loggable *) && execution(* *(..))")
+    @Pointcut("within(@kz.yossshhhi.starter.logging.aop.annotation.Loggable *) && execution(* *(..))")
     public void annotatedByLoggable() { }
 
     /**
@@ -44,3 +44,4 @@ public class LoggableAspect {
         return result;
     }
 }
+

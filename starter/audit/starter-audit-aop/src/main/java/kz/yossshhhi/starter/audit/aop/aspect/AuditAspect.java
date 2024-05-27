@@ -1,10 +1,10 @@
-package kz.yossshhhi.aop;
+package kz.yossshhhi.starter.audit.aop.aspect;
 
-import kz.yossshhhi.dto.AuthenticationDTO;
-import kz.yossshhhi.model.User;
-import kz.yossshhhi.model.enums.AuditType;
-import kz.yossshhhi.service.AuditService;
-import lombok.RequiredArgsConstructor;
+import kz.yossshhhi.starter.audit.aop.annotation.Auditable;
+import kz.yossshhhi.starter.audit.aop.model.AuditType;
+import kz.yossshhhi.starter.audit.aop.model.AuthenticatedRequest;
+import kz.yossshhhi.starter.audit.aop.model.Identifiable;
+import kz.yossshhhi.starter.audit.aop.service.AuditService;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,18 +16,11 @@ import org.aspectj.lang.annotation.Pointcut;
  * It records audit events through the {@link AuditService}.
  */
 @Aspect
-@RequiredArgsConstructor
 public class AuditAspect {
 
-    private AuditService auditService;
+    private final AuditService auditService;
 
-    /**
-     * Initializes the {@link AuditService} used for auditing actions.
-     * This method is intended for setting the audit service dependency manually.
-     *
-     * @param auditService the audit service to use for recording audit events
-     */
-    public void initServices(AuditService auditService) {
+    public AuditAspect(AuditService auditService) {
         this.auditService = auditService;
     }
 
@@ -43,25 +36,27 @@ public class AuditAspect {
      * Advice that is executed after a method annotated with {@link Auditable} successfully returns.
      * It records a successful audit event for the user returned by the method.
      *
-     * @param retVal the return value of the audited method, expected to be of type {@link User}
+     * @param retVal the return value of the audited method, expected to be of type {@link Identifiable}
      * @param auditable the annotation applied to the audited method, which contains metadata for the audit
      */
     @AfterReturning(value = "auditedMethods(auditable)", returning = "retVal", argNames = "retVal,auditable")
     public void afterSuccessfulAudit(Object retVal, Auditable auditable) {
-        User user = (User) retVal;
-        auditService.audit(user.getId(), auditable.action(), AuditType.SUCCESS);
+        if (retVal instanceof Identifiable identifiable) {
+            auditService.audit(identifiable.getId(), auditable.action(), AuditType.SUCCESS);
+        }
     }
 
     /**
      * Advice that is executed when a method annotated with {@link Auditable} throws an exception.
-     * It records a failed audit event using the username provided in the {@link AuthenticationDTO}.
+     * It records a failed audit event using the username provided in the {@link AuthenticatedRequest}.
      *
      * @param auditable the annotation applied to the audited method, which contains metadata for the audit
-     * @param request the {@link AuthenticationDTO} argument of the audited method, used to extract the username
+     * @param request the {@link AuthenticatedRequest} argument of the audited method, used to extract the username
      */
     @AfterThrowing(pointcut = "execution(* *(..)) && @annotation(auditable) && args(request,..)", argNames = "auditable,request")
-    public void afterFailAudit(Auditable auditable, AuthenticationDTO request) {
-        auditService.audit(request.username(), auditable.action(), AuditType.FAIL);
+    public void afterFailAudit(Auditable auditable, Object request) {
+        if (request instanceof AuthenticatedRequest authenticatedRequest) {
+            auditService.audit(authenticatedRequest.getUsername(), auditable.action(), AuditType.FAIL);
+        }
     }
 }
-

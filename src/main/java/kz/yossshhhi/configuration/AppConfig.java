@@ -1,15 +1,11 @@
 package kz.yossshhhi.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kz.yossshhhi.aop.AuditAspect;
-import kz.yossshhhi.mapper.*;
 import kz.yossshhhi.model.*;
-import kz.yossshhhi.service.AuditService;
+import kz.yossshhhi.security.JwtTokenFilter;
 import kz.yossshhhi.util.ResultSetMapper;
-import org.aspectj.lang.Aspects;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -20,9 +16,17 @@ import org.springframework.context.annotation.Import;
  * and aspects for audit logging.
  */
 @Configuration
-@EnableAspectJAutoProxy
-@Import({AuditService.class})
+@Import({JwtTokenFilter.class})
 public class AppConfig {
+
+    @Bean
+    public FilterRegistrationBean<JwtTokenFilter> authenticationFilter(JwtTokenFilter jwtTokenFilter) {
+        FilterRegistrationBean<JwtTokenFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(jwtTokenFilter);
+        registrationBean.addUrlPatterns("/admin/*", "/user/*");
+
+        return registrationBean;
+    }
 
     @Bean
     public ResultSetMapper<Audit> auditResultSetMapper() {
@@ -57,42 +61,5 @@ public class AppConfig {
     @Bean
     public ResultSetMapper<AggregateWorkoutData> aggregateWorkoutDataResultSetMapper() {
         return new ResultSetMapper<>(AggregateWorkoutData.class);
-    }
-
-    @Bean
-    public WorkoutMapper workoutMapper() {
-        return new WorkoutMapperImpl();
-    }
-
-    @Bean
-    public AuditMapper auditMapper() {
-        return new AuditMapperImpl();
-    }
-
-    @Bean
-    public ExtraOptionTypeMapper extraOptionTypeMapper() {
-        return new ExtraOptionTypeMapperImpl();
-    }
-
-    @Bean
-    public WorkoutTypeMapper workoutTypeMapper() {
-        return new WorkoutTypeMapperImpl();
-    }
-
-    @Bean
-    public AggregateWorkoutDataMapper aggregateWorkoutDataMapper() {
-        return new AggregateWorkoutDataMapperImpl();
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
-
-    @Bean
-    public AuditAspect auditAspect(AuditService auditService) {
-        AuditAspect auditAspect = Aspects.aspectOf(AuditAspect.class);
-        auditAspect.initServices(auditService);
-        return auditAspect;
     }
 }

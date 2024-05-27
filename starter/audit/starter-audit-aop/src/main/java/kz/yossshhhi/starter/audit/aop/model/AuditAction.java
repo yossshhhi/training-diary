@@ -1,4 +1,4 @@
-package kz.yossshhhi.model.enums;
+package kz.yossshhhi.starter.audit.aop.model;
 
 /**
  * Enumeration representing different audit actions.

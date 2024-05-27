@@ -1,6 +1,6 @@
-package kz.yossshhhi.aop;
+package kz.yossshhhi.starter.audit.aop.annotation;
 
-import kz.yossshhhi.model.enums.AuditAction;
+import kz.yossshhhi.starter.audit.aop.model.AuditAction;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

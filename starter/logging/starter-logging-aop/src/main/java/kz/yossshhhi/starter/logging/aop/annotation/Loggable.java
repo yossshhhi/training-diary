@@ -1,4 +1,4 @@
-package kz.yossshhhi.aop;
+package kz.yossshhhi.starter.logging.aop.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

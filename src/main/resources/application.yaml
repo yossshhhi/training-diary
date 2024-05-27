@@ -1,11 +1,11 @@
-liquibase:
-  change-log: db/changelog/changelog.xml
-
-datasource:
-  url: jdbc:postgresql://localhost:5432/training-diary-db
-  username: username
-  password: password
-  driver-class-name: org.postgresql.Driver
+spring:
+  liquibase:
+   change-log: db/changelog/changelog.xml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/training-diary-db
+    username: username
+    password: password
+    driver-class-name: org.postgresql.Driver
 
 jwt:
   secret: E0r0UUffSqw8wHlPItGtTeRove6CNUcdVgHB7ysWoFc=

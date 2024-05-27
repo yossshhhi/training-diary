@@ -1,15 +1,11 @@
 package kz.yossshhhi.service;
 
-import kz.yossshhhi.aop.AuditAspect;
 import kz.yossshhhi.dao.repository.UserRepository;
 import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
 import kz.yossshhhi.exception.RegistrationException;
 import kz.yossshhhi.model.User;
-import kz.yossshhhi.model.enums.AuditAction;
-import kz.yossshhhi.model.enums.AuditType;
 import kz.yossshhhi.model.enums.Role;
-import org.aspectj.lang.Aspects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,17 +26,12 @@ public class SecurityServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private AuditService auditService;
-
     @InjectMocks
     private SecurityService securityService;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        AuditAspect auditAspect = Aspects.aspectOf(AuditAspect.class);
-        auditAspect.initServices(auditService);
     }
 
     @Test
@@ -57,8 +48,6 @@ public class SecurityServiceTest {
         assertEquals("username", registeredUser.getUsername());
         assertEquals(Role.USER, registeredUser.getRole());
         verify(userRepository, times(1)).save(any(User.class));
-
-        verify(auditService, times(1)).audit(eq(registeredUser.getId()), eq(AuditAction.REGISTRATION), eq(AuditType.SUCCESS));
     }
 
     @Test
@@ -69,15 +58,13 @@ public class SecurityServiceTest {
 
         assertThrows(RegistrationException.class, () -> securityService.registration(request));
         verify(userRepository, never()).save(any(User.class));
-
-        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.REGISTRATION), eq(AuditType.FAIL));
     }
 
     @Test
     @DisplayName("Successful Authentication")
     public void testAuthentication_Successful() {
         AuthenticationDTO request = new AuthenticationDTO("username", "password");
-        String hashedPassword = hashPassword(request.password());
+        String hashedPassword = hashPassword(request.getPassword());
         User existingUser = User.builder()
                 .username("username")
                 .password(hashedPassword)
@@ -91,8 +78,6 @@ public class SecurityServiceTest {
         assertNotNull(authenticatedUser);
         assertEquals("username", authenticatedUser.getUsername());
         assertEquals(Role.USER, authenticatedUser.getRole());
-
-        verify(auditService, times(1)).audit(eq(authenticatedUser.getId()), eq(AuditAction.LOG_IN), eq(AuditType.SUCCESS));
     }
 
     @Test
@@ -103,8 +88,6 @@ public class SecurityServiceTest {
         when(userRepository.findByUsername("nonExistingUser")).thenReturn(Optional.empty());
 
         assertThrows(AuthenticationException.class, () -> securityService.authenticate(request));
-
-        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.LOG_IN), eq(AuditType.FAIL));
     }
 
     @Test
@@ -120,8 +103,6 @@ public class SecurityServiceTest {
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(existingUser));
 
         assertThrows(AuthenticationException.class, () -> securityService.authenticate(request));
-
-        verify(auditService, times(1)).audit(eq(request.username()), eq(AuditAction.LOG_IN), eq(AuditType.FAIL));
     }
 
     private String hashPassword(String password) {

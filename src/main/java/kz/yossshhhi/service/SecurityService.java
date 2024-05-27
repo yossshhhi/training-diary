@@ -1,14 +1,14 @@
 package kz.yossshhhi.service;
 
-import kz.yossshhhi.aop.Auditable;
-import kz.yossshhhi.aop.Loggable;
 import kz.yossshhhi.dao.repository.UserRepository;
 import kz.yossshhhi.dto.AuthenticationDTO;
 import kz.yossshhhi.exception.AuthenticationException;
 import kz.yossshhhi.exception.RegistrationException;
 import kz.yossshhhi.model.User;
-import kz.yossshhhi.model.enums.AuditAction;
 import kz.yossshhhi.model.enums.Role;
+import kz.yossshhhi.starter.audit.aop.annotation.Auditable;
+import kz.yossshhhi.starter.audit.aop.model.AuditAction;
+import kz.yossshhhi.starter.logging.aop.annotation.Loggable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,14 +39,14 @@ public class SecurityService {
      */
     @Auditable(action = AuditAction.REGISTRATION)
     public User registration(AuthenticationDTO request) {
-        userRepository.findByUsername(request.username()).ifPresent(user -> {
+        userRepository.findByUsername(request.getUsername()).ifPresent(user -> {
             throw new RegistrationException("User with " + user.getUsername() + " username already exists");
         });
 
-        String hashedPassword = hashPassword(request.password());
+        String hashedPassword = hashPassword(request.getPassword());
 
         return userRepository.save(User.builder()
-                .username(request.username())
+                .username(request.getUsername())
                 .password(hashedPassword)
                 .role(Role.USER)
                 .build());
@@ -61,13 +61,13 @@ public class SecurityService {
      */
     @Auditable(action = AuditAction.LOG_IN)
     public User authenticate(AuthenticationDTO request) {
-        Optional<User> userOptional = userRepository.findByUsername(request.username());
+        Optional<User> userOptional = userRepository.findByUsername(request.getUsername());
         if (userOptional.isEmpty()) {
             throw new AuthenticationException("User not found");
         }
 
         User user = userOptional.get();
-        String hashedPassword = hashPassword(request.password());
+        String hashedPassword = hashPassword(request.getPassword());
         if (!user.getPassword().equals(hashedPassword)) {
             throw new AuthenticationException("Invalid password");
         }

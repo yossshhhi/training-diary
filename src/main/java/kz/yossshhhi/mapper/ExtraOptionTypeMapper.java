@@ -9,7 +9,7 @@ import org.mapstruct.Mapper;
  * This mapper simplifies the transformation of data formats used in different layers of the application,
  * facilitating easier data manipulation and encapsulation.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ExtraOptionTypeMapper {
     ExtraOptionTypeDTO toDTO(ExtraOptionType entity);
 

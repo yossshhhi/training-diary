@@ -46,3 +46,5 @@ bin/
 /gradle/wrapper/gradle-wrapper.properties
 /.idea/.gitignore
 /.idea/
+/starter/logging/starter-logging-aop/.gitignore
+/starter/audit/starter-audit-aop/.gitignore
